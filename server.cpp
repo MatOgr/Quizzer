@@ -8,10 +8,8 @@
 #include <mutex>
 #include <cstring>
 #include <ctime>
-#include <iostream>
 
 #include "bin/Room.hpp"
-#include "bin/User.hpp"
 
 #define ROOMS_NR 3
 #define PLAYERS_NR 5

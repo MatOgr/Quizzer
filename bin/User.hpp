@@ -29,5 +29,7 @@ public:
     void setReady(const bool ready);
     void setAdmin(const bool admin);
 };
-
+/*
+    nick, can be admin/host
+*/
 #endif
