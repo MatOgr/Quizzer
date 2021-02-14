@@ -25,7 +25,7 @@ public:
     int getQuestionsNumber();
     string getCategory();
     void addPlayer(User plyr);
-    void removePlayer(User plyr);
+    void removePlayer(int plyr_id);
     void setCategory(const string cat);
     void setQuestionNumber(const int quest_num);
     void setPlayersNumber(const int number);

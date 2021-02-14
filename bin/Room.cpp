@@ -34,9 +34,10 @@ void Room::addPlayer(User plyr) {
     this->players->push_back(plyr);
 }
 
-void Room::removePlayer(User plyr) {
-    remove(this->players->begin(), this->players->end(), plyr);
-    // probably User.equals needed or sth
+// ### TODO
+void Room::removePlayer(int plyr_id) {
+    // remove(this->players->begin(), this->players->end(), plyr);      # removing in vector 
+    // or removing by player_id created by the room joined
 }
 
 void Room::setCategory(const string cat) {

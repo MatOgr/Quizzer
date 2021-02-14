@@ -7,7 +7,7 @@ using namespace std;
 
 class User {
 private:
-    string nick;
+    string nick;    // or id 
     int socket_id;
     int score;
     bool start_game;

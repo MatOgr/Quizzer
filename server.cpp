@@ -23,7 +23,7 @@ struct threadData {
     int *con_desc_arr;
     Room *rooms_list;
     int room_id;
-    int player_id;
+    int player_id;  // or nick???
     bool *server_state;
     pthread_mutex_t rooms_list_mutex;
     pthread_mutex_t con_desc_mutex;
@@ -55,7 +55,36 @@ char * readThread(int fd, threadData *thread_data, bool * connection) {
     delete temp;
 }
 
+void * clientRoutine(void *thread_data) {
+    pthread_detach(pthread_self());
+    bool connected = true;
+    bool room_used = false;
+    threadData *current_thread = (threadData *)thread_data;
+    char *buffer;
+    while(connected && *(current_thread->server_state)) {
+        if(!(buffer = readThread(
+            current_thread->con_sock_desc, 
+            current_thread, 
+            &connected))) 
+                break;
 
+        // instructions
+        if(!strcmp(buffer, "create") && !room_used) {}      // TODO
+        else if(!strcmp(buffer, "join") && !room_used) {}      // TODO
+        else if(!strcmp(buffer, "leave") && room_used) {}      // TODO
+        else if(!strcmp(buffer, "ready") && room_used) {}      // TODO
+        else if(!strcmp(buffer, "answer") && room_used) {}      // TODO
+        else if(!strcmp(buffer, "playernum") && room_used) {}      // TODO
+        else if(!strcmp(buffer, "questionnum") && room_used) {}      // TODO
+        else if(!strcmp(buffer, "category") && room_used) {}      // TODO
+
+        delete buffer;
+    }
+    // handler closing - user leaving connection
+    close(current_thread->con_sock_desc);
+    if(current_thread->room_id >= 0) 
+        current_thread->rooms_list[current_thread->room_id].removePlayer(current_thread->player_id);
+}
 
 
 int main() {
