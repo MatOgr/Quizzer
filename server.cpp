@@ -81,7 +81,43 @@ int main() {
     }
 
     // TODO mutexes & structure fill in 
-    
+    int * con_desc_arr_ptr = new int[ROOMS_NR * PLAYERS_NR];
+    Room * rooms_list_ptr = new Room[ROOMS_NR];
+    bool * server_state_ptr = new bool;
+    pthread_mutex_t con_desc_mutex;
+    pthread_mutex_t rooms_list_mutex;
+
+    memset(con_desc_arr_ptr, -1, ROOMS_NR * PLAYERS_NR * sizeof(int));
+    *server_state_ptr = true;
+    pthread_mutex_init(&con_desc_mutex, NULL);
+    pthread_mutex_init(&rooms_list_mutex, NULL);
+
+    while(*server_state_ptr) {
+        int client = accept(fd, nullptr, nullptr);
+        if(client == -1) {
+            perror("Accept failed");
+            return 1;
+        }
+
+        pthread_t thread_id;
+        threadData *that_thread = new threadData;
+        that_thread->con_sock_desc = client;
+        that_thread->con_desc_arr = con_desc_arr_ptr;
+        that_thread->rooms_list = rooms_list_ptr;
+        that_thread->room_id = -1;
+        that_thread->server_state = server_state_ptr;
+        that_thread->rooms_list_mutex = rooms_list_mutex;
+        that_thread->con_desc_mutex = con_desc_mutex;
+
+        pthread_create(&thread_id, NULL, clientRoutine, (void *)that_thread);
+    }
+
+    close(fd);
+    pthread_mutex_destroy(&con_desc_mutex);
+    pthread_mutex_destroy(&rooms_list_mutex);
+    delete [] con_desc_arr_ptr;
+    delete [] rooms_list_ptr;
+    delete server_state_ptr;
 
     return 0;
 }
