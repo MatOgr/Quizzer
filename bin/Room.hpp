@@ -5,15 +5,20 @@
 #include "User.hpp"
 #include "Question.hpp"
 
+#define PLAYERS_NR 5
+#define QUESTION_NR 10
+
 using namespace std;
 
 class Room {
 private:
-    vector<User>* players;
-    vector<Question>* questions;
+    vector<User> players;
+    vector<Question> questions;
     string category;
     int players_number;
     int questions_number;
+    bool game_running;
+    mutex room_mutex;
 public:
     Room();
     Room(User player);
@@ -24,12 +29,17 @@ public:
     int getCurrentPlayersNumber();
     int getQuestionsNumber();
     string getCategory();
-    void addPlayer(User plyr);
-    void removePlayer(int plyr_id);
+    bool getGameState();
+    bool addPlayer(User plyr);
+    bool removePlayer(int plyr_id);
+    void setGameState(const bool state);
     void setCategory(const string cat);
     void setQuestionNumber(const int quest_num);
     void setPlayersNumber(const int number);
     void loadQuestions();
+
+    void start();
+    void end();
 };
 
 /*

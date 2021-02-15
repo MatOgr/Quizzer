@@ -1,43 +1,59 @@
 #include "Room.hpp"
 
 Room::Room() :
-    players(nullptr), questions(nullptr), category("life"), players_number(4), questions_number(5) {};
+    category("life"), players_number(PLAYERS_NR), questions_number(QUESTION_NR), game_running(false) {};
 
 Room::Room(User player) :
-    players(nullptr), questions(nullptr), category("life"), players_number(4), questions_number(5) {
+    category("life"), players_number(PLAYERS_NR), questions_number(QUESTION_NR), game_running(false) {
         //  make player admin - pointers needed
-        players->push_back(player);        
+        players.clear();
+        // players.reserve(players_number);
+        player.setAdmin(true);
+        players.push_back(player);      
     };
 
+// Room::~Room() {};
+
+// ### TODO
 string Room::getRanking() {
-    //  TODO
+
     return "NOTHING";
 }
-
+// returns maximal player 
 int Room::getMaxPlayersNumber() {
     return this->players_number;
 }
-
+// returns current number of players in the room
 int Room::getCurrentPlayersNumber() {
     return this->players_number;
 }
-
+// returns maximal question number for considered room
 int Room::getQuestionsNumber() {
     return this->questions_number;
 }
-
+// returns room's category 
 string Room::getCategory() {
     return this->category;
 }
 
-void Room::addPlayer(User plyr) {
-    this->players->push_back(plyr);
+bool Room::addPlayer(User plyr) {
+    if(players.size() < players_number) {
+        this->players.push_back(plyr);
+        return true;
+    }
+    return false;
 }
-
-// ### TODO
-void Room::removePlayer(int plyr_id) {
-    // remove(this->players->begin(), this->players->end(), plyr);      # removing in vector 
+/*  ## NEED TO BE CHECKED
+    looks for leaving player (by socket_id) - if found, erases it and returns true, false otherwise */
+bool Room::removePlayer(int plyr_id) {
     // or removing by player_id created by the room joined
+    auto leaving = find(players.begin(), players.end(), 
+        [&plyr_id](User * u) { return u && (u->getSocket() == plyr_id); });
+    if (leaving != players.end()) {
+        players.erase(leaving);
+        return true;
+    }
+    return false;
 }
 
 void Room::setCategory(const string cat) {
@@ -51,7 +67,23 @@ void Room::setQuestionNumber(const int quest_num) {
 void Room::setPlayersNumber(const int plyr_number) {
     this->players_number = plyr_number;
 }
-
+    // TODO - some questions base needed
 void Room::loadQuestions() {
-    // TODO - some question base needed
+    
+}
+// checks whether the game is in progress
+bool Room::getGameState() {
+    return this->game_running;
+}
+// sets the game status - 'true' in progress, 'false' in other case 
+void Room::setGameState(const bool state) {
+    this->game_running = state;
+}
+//  ## TODO
+void Room::start() {
+
+}
+//  ## TODO
+void Room::end() {
+    
 }

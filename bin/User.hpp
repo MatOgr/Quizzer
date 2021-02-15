@@ -7,10 +7,10 @@ using namespace std;
 
 class User {
 private:
-    string nick;    // or id 
+    string nick;   
     int socket_id;
     int score;
-    bool start_game;
+    bool ready_to_play;
     bool admin;
 public: 
     User();
@@ -22,6 +22,7 @@ public:
     string getNick();
     bool getReady();
     bool getAdmin();
+
     void setSocket(const int socket);
     void setScore(const int score);
     void addToScore(const int points);
@@ -29,7 +30,6 @@ public:
     void setReady(const bool ready);
     void setAdmin(const bool admin);
 };
-/*
-    nick, can be admin/host
-*/
+
+
 #endif
