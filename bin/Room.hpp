@@ -14,8 +14,8 @@ using namespace std;
 class Room {
 private:
     Server *srv;
-    vector<User> players;
-    vector<Question> questions;
+    vector<User*> players;
+    vector<Question*> questions;
     string category;
     int players_number;
     int questions_number;
@@ -23,7 +23,7 @@ private:
     mutex room_mutex;
 public:
     Room(Server* serv);
-    Room(Server* serv, User player);
+    Room(Server* serv, User * player);        // not needed???
     ~Room();
 
     string getRanking();  
@@ -32,13 +32,16 @@ public:
     int getQuestionsNumber();
     string getCategory();
     bool getGameState();
-    bool addPlayer(User plyr);
+
+    bool addPlayer(User* plyr);
     bool removePlayer(int plyr_id);
+
     void setGameState(const bool state);
     void setCategory(const string cat);
     void setQuestionNumber(const int quest_num);
     void setPlayersNumber(const int number);
-    void loadQuestions(const vector<Question> q_list);
+
+    void loadQuestions(const vector<Question*> q_list);
     // void sendQuestionRequest();
 
     void start();

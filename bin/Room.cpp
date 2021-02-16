@@ -3,12 +3,12 @@
 Room::Room(Server *srv) :
     srv(srv), category("life"), players_number(PLAYERS_NR), questions_number(QUESTION_NR), game_running(false) {};
 
-Room::Room(Server *srv, User player) :
+Room::Room(Server *srv, User *player) :
     srv(srv), category("life"), players_number(PLAYERS_NR), questions_number(QUESTION_NR), game_running(false) {
         //  make player admin - pointers needed
         players.clear();
         // players.reserve(players_number);
-        player.setAdmin(true);
+        player->setAdmin(true);
         players.push_back(player);      
     };
 
@@ -35,8 +35,11 @@ int Room::getQuestionsNumber() {
 string Room::getCategory() {
     return this->category;
 }
+// TO CHECK
+bool Room::addPlayer(User * plyr) {
+    if(players.size() == 0) 
+        plyr->setAdmin(true);
 
-bool Room::addPlayer(User plyr) {
     if(players.size() < players_number) {
         this->players.push_back(plyr);
         return true;
@@ -68,7 +71,7 @@ void Room::setPlayersNumber(const int plyr_number) {
     this->players_number = plyr_number;
 }
     // TODO - some questions base needed
-void Room::loadQuestions(const vector<Question> q_list) {
+void Room::loadQuestions(const vector<Question*> q_list) {
     questions = q_list;
 }
 // checks whether the game is in progress
@@ -81,7 +84,7 @@ void Room::setGameState(const bool state) {
 }
 //  ## TODO
 void Room::start() {
-    loadQuestions(srv->getQuestions(category));
+    loadQuestions(srv->getQuestions(category, questions_number));
 }
 //  ## TODO
 void Room::end() {

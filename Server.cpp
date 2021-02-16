@@ -26,6 +26,10 @@ Server::Server() {}
 Server::~Server() {}
 
 //  ### TODO
+void Server::connectUser(User * usr) {}
+//  ### TODO
+void Server::disconnectUser(User * usr) {}
+//  ### TODO
 void Server::closeRoom() {}
 //  ### TODO
 void Server::createRoom() {}
@@ -34,7 +38,7 @@ void Server::putUserOut(User* usr, const int room_id) {}
 //  ### TODO
 void Server::putUserInRoom(User* usr, const int room_id) {}
 
-
+/*
 void Server::sendMsg(const int id, const string content, const int length) {
     write(id, content.c_str(), length);
 }
@@ -60,7 +64,7 @@ char * Server::readThread(int fd, threadData *thread_data, bool * connection) {
     delete buffer;
     delete temp;
 }
-//  TO CHECK
+//  ### TODO
 void * Server::clientRoutine(void *thread_data) {
     pthread_detach(pthread_self());
     bool connected = true;
@@ -88,15 +92,16 @@ void * Server::clientRoutine(void *thread_data) {
     }
     // handler closing - user leaving connection
     close(current_thread->con_sock_desc);
-    if(current_thread->room_id >= 0) 
-        current_thread->rooms_list. //.removePlayer(current_thread->player_id);
+    // if(current_thread->room_id >= 0) 
+        // current_thread->rooms_list.removePlayer(current_thread->player_id);
 }
+*/
 //  TO CHECK
-vector<Question> Server::getQuestions(const string category, const int number) {
-    vector<Question> filtered;
+vector<Question*> Server::getQuestions(const string category, const int number) {
+    vector<Question*> filtered;
     for(Question q : questions_list) 
         if (q.getTopic() == category && filtered.size() < number)
-            filtered.push_back(q);
+            filtered.push_back(&q);
     
     return filtered;
 }

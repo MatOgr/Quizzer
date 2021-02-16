@@ -1,7 +1,7 @@
 #ifndef Server_hpp
 #define Server_hpp
 
-#include "./Room.hpp"
+#include "bin/Room.hpp"
 
 using namespace std;
 
@@ -27,16 +27,23 @@ private:
 public:
     Server();
     ~Server();
-    vector<Question> getQuestions(const string category, const int number);
+    
+    void connectUser(User * usr);
+    void disconnectUser(User * usr);
+    
     void closeRoom();
     void createRoom();
+    
     void putUserOut(User* usr, const int room_id);
     void putUserInRoom(User* usr, const int room_id);
+
     char *readThread(int fd, threadData *thread_data, bool *connection);
     void sendMsg(const int id, const string content, const int length);
     void *clientRoutine(void *thread_data);
+    
     void readQuestions(const string fdir);
     void addQuestion(string content);
+    vector<Question*> getQuestions(const string category, const int number);
 };
 
 #endif
