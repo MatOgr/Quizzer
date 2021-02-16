@@ -19,6 +19,21 @@
 #define PORT 8081
 #define BUFFER_SIZE 64
 
+//  ### TODO
+Server::Server() {}
+
+//  ### TODO
+Server::~Server() {}
+
+//  ### TODO
+void Server::closeRoom() {}
+//  ### TODO
+void Server::createRoom() {}
+//  ### TODO
+void Server::putUserOut(User* usr, const int room_id) {}
+//  ### TODO
+void Server::putUserInRoom(User* usr, const int room_id) {}
+
 
 void Server::sendMsg(const int id, const string content, const int length) {
     write(id, content.c_str(), length);
@@ -76,13 +91,16 @@ void * Server::clientRoutine(void *thread_data) {
     if(current_thread->room_id >= 0) 
         current_thread->rooms_list. //.removePlayer(current_thread->player_id);
 }
-//  ### TODO
-vector<Question> Server::getQuestions(const string category) {
+//  TO CHECK
+vector<Question> Server::getQuestions(const string category, const int number) {
     vector<Question> filtered;
-
+    for(Question q : questions_list) 
+        if (q.getTopic() == category && filtered.size() < number)
+            filtered.push_back(q);
+    
     return filtered;
 }
-
+//  TO CHECK
 void Server::readQuestions(const string fdir) {
     string buffer;
     ifstream read_it("quest_base.txt");
@@ -91,7 +109,7 @@ void Server::readQuestions(const string fdir) {
     }
     read_it.close();
 }
-
+//  TO CHECK
 void Server::addQuestion(string content) {
     string category, q_content, answers, correct;
     category = content.substr(0, content.find(':'));

@@ -27,10 +27,11 @@ private:
 public:
     Server();
     ~Server();
-    vector<Question> getQuestions(const string category);
+    vector<Question> getQuestions(const string category, const int number);
     void closeRoom();
     void createRoom();
-    void putUserInRoom(int room_id);
+    void putUserOut(User* usr, const int room_id);
+    void putUserInRoom(User* usr, const int room_id);
     char *readThread(int fd, threadData *thread_data, bool *connection);
     void sendMsg(const int id, const string content, const int length);
     void *clientRoutine(void *thread_data);
