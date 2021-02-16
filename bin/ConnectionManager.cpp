@@ -33,9 +33,15 @@ void ConnectionManager::listen(const int socket) { {
             read(user->getSocket(), msg, size + 1);
             string message = (string)msg;
 
-            //  answer for question
+            //  answer for question - ?:room_number:anser_number, e.g. ?:6:3
             if(message[0] == '?') {
                 // verify answer
+                int answer = stoi(message.substr(message.find(':'), message.length()-1));
+                server->rooms_list
+            }
+            //  leaving the server
+            if(message[0] == 'X') {
+
             }
 
             free(msg);

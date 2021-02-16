@@ -1,10 +1,10 @@
 #include "Room.hpp"
 
-Room::Room() :
-    category("life"), players_number(PLAYERS_NR), questions_number(QUESTION_NR), game_running(false) {};
+Room::Room(Server *srv) :
+    srv(srv), category("life"), players_number(PLAYERS_NR), questions_number(QUESTION_NR), game_running(false) {};
 
-Room::Room(User player) :
-    category("life"), players_number(PLAYERS_NR), questions_number(QUESTION_NR), game_running(false) {
+Room::Room(Server *srv, User player) :
+    srv(srv), category("life"), players_number(PLAYERS_NR), questions_number(QUESTION_NR), game_running(false) {
         //  make player admin - pointers needed
         players.clear();
         // players.reserve(players_number);
@@ -68,8 +68,8 @@ void Room::setPlayersNumber(const int plyr_number) {
     this->players_number = plyr_number;
 }
     // TODO - some questions base needed
-void Room::loadQuestions() {
-    
+void Room::loadQuestions(const vector<Question> q_list) {
+    questions = q_list;
 }
 // checks whether the game is in progress
 bool Room::getGameState() {
@@ -81,7 +81,7 @@ void Room::setGameState(const bool state) {
 }
 //  ## TODO
 void Room::start() {
-
+    loadQuestions(srv->getQuestions(category));
 }
 //  ## TODO
 void Room::end() {

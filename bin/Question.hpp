@@ -11,23 +11,24 @@ private:
     string answers;
     int correct_answer;
     string topic;
-    int points;
+    // int points;
 
 public:
     Question();
-    Question(const string cont, const string answs, const int ans_nr, const string topic, const int pts);
+    Question(const string cont, const string answs, const int ans_nr, const string topic/*, const int pts*/);
     ~Question();
 
     string getContent();
     string getTopic();
     string getAnswers();
-    int getPoints();
+    // int getPoints();
     bool verify(const int nr);
 
     void setAnswers(const string ans);
+    void setCorrectAnsw(const int nr);
     void setContent(const string cont);
     void setTopic(const string topic);
-    void setPoints(const int pts);
+    // void setPoints(const int pts);
 };
 
 #endif

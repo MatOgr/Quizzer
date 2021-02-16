@@ -4,6 +4,7 @@
 #include <bits/stdc++.h>
 #include "User.hpp"
 #include "Question.hpp"
+#include "../Server.hpp"
 
 #define PLAYERS_NR 5
 #define QUESTION_NR 10
@@ -12,6 +13,7 @@ using namespace std;
 
 class Room {
 private:
+    Server *srv;
     vector<User> players;
     vector<Question> questions;
     string category;
@@ -20,11 +22,11 @@ private:
     bool game_running;
     mutex room_mutex;
 public:
-    Room();
-    Room(User player);
+    Room(Server* serv);
+    Room(Server* serv, User player);
     ~Room();
 
-    string getRanking();
+    string getRanking();  
     int getMaxPlayersNumber();
     int getCurrentPlayersNumber();
     int getQuestionsNumber();
@@ -36,7 +38,8 @@ public:
     void setCategory(const string cat);
     void setQuestionNumber(const int quest_num);
     void setPlayersNumber(const int number);
-    void loadQuestions();
+    void loadQuestions(const vector<Question> q_list);
+    // void sendQuestionRequest();
 
     void start();
     void end();

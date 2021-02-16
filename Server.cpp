@@ -8,32 +8,23 @@
 #include <mutex>
 #include <cstring>
 #include <ctime>
+#include <vector>
 
 #include "bin/Room.hpp"
+#include "bin/Question.hpp"
+#include "bin/User.hpp"
 
 #define ROOMS_NR 3
 #define PLAYERS_NR 5
 #define PORT 8081
 #define BUFFER_SIZE 64
 
-using namespace std;
 
-struct threadData {
-    int con_sock_desc;
-    int *con_desc_arr;
-    Room *rooms_list;
-    int room_id;
-    int player_id;  // or nick???
-    bool *server_state;
-    pthread_mutex_t rooms_list_mutex;
-    pthread_mutex_t con_desc_mutex;
-};
-
-void sendMsg(int id, string content, int length) {
+void Server::sendMsg(const int id, const string content, const int length) {
     write(id, content.c_str(), length);
 }
-
-char * readThread(int fd, threadData *thread_data, bool * connection) {
+//  TO CHECK
+char * Server::readThread(int fd, threadData *thread_data, bool * connection) {
     char *buffer = new char[BUFFER_SIZE];
     char *temp = new char[2];
     memset(buffer, '\0', sizeof(char) * BUFFER_SIZE - 1);
@@ -54,15 +45,15 @@ char * readThread(int fd, threadData *thread_data, bool * connection) {
     delete buffer;
     delete temp;
 }
-
-void * clientRoutine(void *thread_data) {
+//  TO CHECK
+void * Server::clientRoutine(void *thread_data) {
     pthread_detach(pthread_self());
     bool connected = true;
     bool room_used = false;
     threadData *current_thread = (threadData *)thread_data;
     char *buffer;
     while(connected && *(current_thread->server_state)) {
-        if(!(buffer = readThread(
+        if(!(buffer = this->readThread(
             current_thread->con_sock_desc, 
             current_thread, 
             &connected))) 
@@ -83,10 +74,37 @@ void * clientRoutine(void *thread_data) {
     // handler closing - user leaving connection
     close(current_thread->con_sock_desc);
     if(current_thread->room_id >= 0) 
-        current_thread->rooms_list[current_thread->room_id].removePlayer(current_thread->player_id);
+        current_thread->rooms_list. //.removePlayer(current_thread->player_id);
+}
+//  ### TODO
+vector<Question> Server::getQuestions(const string category) {
+    vector<Question> filtered;
+
+    return filtered;
 }
 
+void Server::readQuestions(const string fdir) {
+    string buffer;
+    ifstream read_it("quest_base.txt");
+    while(getline(read_it, buffer)) {
+        addQuestion(buffer);
+    }
+    read_it.close();
+}
 
+void Server::addQuestion(string content) {
+    string category, q_content, answers, correct;
+    category = content.substr(0, content.find(':'));
+    content.erase(0, content.find(':') + 1);
+    q_content = content.substr(0, content.find(':'));
+    content.erase(0, content.find(':') + 1);
+    answers = content.substr(0, content.find(':'));
+    content.erase(0, content.find(':') + 1);
+    correct = content.substr(0, 1);
+    questions_list.push_back(Question(q_content, answers, stoi(correct), category));
+}
+
+/*
 int main() {
     sockaddr_in serv_addr {};
     serv_addr.sin_family = AF_INET;
@@ -131,7 +149,7 @@ int main() {
         pthread_t thread_id;
         threadData *that_thread = new threadData;
         that_thread->con_sock_desc = client;
-        that_thread->con_desc_arr = con_desc_arr_ptr;
+        that_thread->con_desc_vec = con_desc_arr_ptr;
         that_thread->rooms_list = rooms_list_ptr;
         that_thread->room_id = -1;
         that_thread->server_state = server_state_ptr;
@@ -150,3 +168,4 @@ int main() {
 
     return 0;
 }
+*/
