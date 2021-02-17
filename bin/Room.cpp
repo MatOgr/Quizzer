@@ -22,13 +22,16 @@ string Room::getRanking() {
     sort(players.begin(), players.end(), [](User* fst, User* snd) {
         return fst->getScore() < snd->getScore();
     });
-    for (int i = 1, auto u = players.begin(); u != players.end(); i++, u++) 
+    int i = 1;
+    for(User * usr : players) {
         ranking.append(to_string(i)).
             append(". ").
-            append(u->getNick()).
+            append(usr->getNick()).
             append("\t: \t").
-            append(u->getScore()).
+            append(to_string(usr->getScore())).
             append("\n");
+        i++;
+    }
     
     return ranking;
 }
