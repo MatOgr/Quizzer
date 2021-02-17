@@ -104,6 +104,14 @@ bool Room::getGameState() {
 void Room::setGameState(const bool state) {
     this->game_running = state;
 }
+
+bool Room::checkReady() {
+    for(User * u : players) 
+        if (!u->getReady())
+            return false;
+    
+    return true;
+}
 // ### TODO some time control/response listener needed
 void Room::sendQuestionsToUsers() {
     for(Question * q : questions) {
@@ -120,10 +128,12 @@ void Room::sendQuestionsToUsers() {
 }
 //  ## TODO - some countdown before the beginning
 void Room::start() {
-    loadQuestions(srv->getQuestions(category, questions_number));
-    //  sleep(5);
-    setGameState(true);
-    sendQuestionsToUsers();
+    if (checkReady()) {
+        loadQuestions(srv->getQuestions(category, questions_number));
+        //  sleep(5);
+        setGameState(true);
+        sendQuestionsToUsers();
+    }
 }
 //  To CHECK
 void Room::end() {
