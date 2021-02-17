@@ -2,7 +2,7 @@
 
 Room::Room(Server *srv) :
     srv(srv), category("life"), players_number(PLAYERS_NR), questions_number(QUESTION_NR), game_running(false) {};
-
+// probably unnecessary 
 Room::Room(Server *srv, User *player) :
     srv(srv), category("life"), players_number(PLAYERS_NR), questions_number(QUESTION_NR), game_running(false) {
         //  make player admin - pointers needed
@@ -16,12 +16,23 @@ Room::Room(Server *srv, User *player) :
      cout << "Room of category '" << category << "' has been closed..." << endl;
  };
 
-// ### TODO
+// Sorts list of players playing in the Room by their scores and returns string containing whole scoretable
 string Room::getRanking() {
-
-    return "NOTHING";
+    string ranking;
+    sort(players.begin(), players.end(), [](User* fst, User* snd) {
+        return fst->getScore() < snd->getScore();
+    });
+    for (int i = 1, auto u = players.begin(); u != players.end(); i++, u++) 
+        ranking.append(to_string(i)).
+            append(". ").
+            append(u->getNick()).
+            append("\t: \t").
+            append(u->getScore()).
+            append("\n");
+    
+    return ranking;
 }
-// returns maximal player 
+// returns maximal players number
 int Room::getMaxPlayersNumber() {
     return this->players_number;
 }
@@ -50,10 +61,12 @@ bool Room::addPlayer(User * plyr) {
 }
 // removes pointer to the leaving player from 'players' list
 bool Room::removePlayer(int plyr_id) {
+    
     auto leaving = find(players.begin(), players.end(), 
         [&plyr_id](User * u) { return u && (u->getSocket() == plyr_id); });
     
     if (leaving != players.end()) {
+        cout << "Player " << (*leaving)->getNick() << " is leaving..." << endl;
         if((*leaving)->getAdmin()) {
             (*leaving)->setAdmin(false);
             players.erase(leaving);
@@ -64,19 +77,19 @@ bool Room::removePlayer(int plyr_id) {
     }
     return false;
 }
-
+// Sets category of Questions to 'cat' 
 void Room::setCategory(const string cat) {
     this->category = cat;
 }
-
+// Sets max number of questions in the Room to 'quest_num'
 void Room::setQuestionNumber(const int quest_num) {
     this->questions_number = quest_num;
 }
-
+// Sets max number of Users allowed to be inside this Room
 void Room::setPlayersNumber(const int plyr_number) {
     this->players_number = plyr_number;
 }
-    // TODO - some questions base needed
+// Sets Questions list to provided 'q_list' list 
 void Room::loadQuestions(const vector<Question*> q_list) {
     questions = q_list;
 }
