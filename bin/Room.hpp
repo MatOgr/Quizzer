@@ -42,8 +42,8 @@ public:
     void setPlayersNumber(const int number);
 
     void loadQuestions(const vector<Question*> q_list);
-    // void sendQuestionRequest();
 
+    void sendQuestionsToUsers();
     void start();
     void end();
 };

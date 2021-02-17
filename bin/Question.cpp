@@ -26,6 +26,10 @@ string Question::getAnswers() {
     return answers;
 }
 
+int Question::getCorrect() {
+    return correct_answer;
+}
+
 bool Question::verify(const int nr) {
     return nr == correct_answer;
 }

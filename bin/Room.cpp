@@ -12,7 +12,9 @@ Room::Room(Server *srv, User *player) :
         players.push_back(player);      
     };
 
-// Room::~Room() {};
+ Room::~Room() {
+     cout << "Room of category '" << category << "' has been closed..." << endl;
+ };
 
 // ### TODO
 string Room::getRanking() {
@@ -46,14 +48,18 @@ bool Room::addPlayer(User * plyr) {
     }
     return false;
 }
-/*  ## NEED TO BE CHECKED
-    looks for leaving player (by socket_id) - if found, erases it and returns true, false otherwise */
+// removes pointer to the leaving player from 'players' list
 bool Room::removePlayer(int plyr_id) {
-    // or removing by player_id created by the room joined
     auto leaving = find(players.begin(), players.end(), 
         [&plyr_id](User * u) { return u && (u->getSocket() == plyr_id); });
+    
     if (leaving != players.end()) {
-        players.erase(leaving);
+        if((*leaving)->getAdmin()) {
+            (*leaving)->setAdmin(false);
+            players.erase(leaving);
+            (*players.begin())->setAdmin(true);
+        } else 
+            players.erase(leaving);
         return true;
     }
     return false;
@@ -82,11 +88,31 @@ bool Room::getGameState() {
 void Room::setGameState(const bool state) {
     this->game_running = state;
 }
-//  ## TODO
+// ### TODO some time control/response listener needed
+void Room::sendQuestionsToUsers() {
+    for(Question * q : questions) {
+        string q_temp;
+        q_temp.append("?").
+            append(q->getContent()).
+            append(q->getAnswers()).
+            append(to_string(q->getCorrect()));
+        for (User * x : players) 
+            srv->sendMsg(x->getSocket(), q_temp, q_temp.length());
+
+        //  wait for user response ???
+    }
+}
+//  ## TODO - some countdown before the beginning
 void Room::start() {
     loadQuestions(srv->getQuestions(category, questions_number));
+    //  sleep(5);
+    setGameState(true);
+    sendQuestionsToUsers();
 }
-//  ## TODO
+//  To CHECK
 void Room::end() {
-    
+    setGameState(false);
+    string finalRanking = getRanking();
+    for(User * u : players) 
+        srv->sendMsg(u->getSocket(), finalRanking, finalRanking.length());
 }

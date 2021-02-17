@@ -21,6 +21,7 @@ public:
     string getContent();
     string getTopic();
     string getAnswers();
+    int getCorrect();
     // int getPoints();
     bool verify(const int nr);
 
