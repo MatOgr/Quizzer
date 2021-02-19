@@ -5,40 +5,44 @@
 
 using namespace std;
 
-struct threadData {
-    int con_sock_desc;
-    vector<int> con_desc_vec;
-    vector<Room> rooms_list;
+struct userThread {
+    int usr_con_sock;
     int room_id;
-    int player_id;  // or nick???
+    string player_nick;  
     bool *server_state;
-    pthread_mutex_t rooms_list_mutex;
-    pthread_mutex_t con_desc_mutex;
+    // mutex rooms_list_mutex;
+    // mutex con_desc_mutex;
 };
 
 class Server {
 private:
     int socket_nr;
-    //mutex mutex
+    mutex usr_mutex;
+    mutex rm_mutex;
+    mutex qtns_mutex;
     vector<Room> rooms_list;
     vector<User> users_list;
     vector<Question> questions_list;
+    bool running;
      
 public:
     Server();
     ~Server();
     
-    void connectUser(User * usr);
-    void disconnectUser(User * usr);
+    int run();
+
+    void connectUser(const int usr);
+    void disconnectUser(const int usr);
     
     void closeRoom();
-    void createRoom();
+    bool createRoom();
     
-    void putUserOut(User* usr, const int room_id);
-    void putUserInRoom(User* usr, const int room_id);
+    void putUserOut(const int usr, const int room_id);
+    void putUserInRoom(const int usr, const int room_id);
+    void setUserReady(const int usr_id, const bool ready);
 
-    char *readThread(int fd, threadData *thread_data, bool *connection);
-    void sendMsg(const int id, const string content, const int length);
+    string readThread(const int fd, userThread *thread_data, bool *connection);
+    void sendMsg(const int id, const string content);
     void *clientRoutine(void *thread_data);
     
     void readQuestions(const string fdir);

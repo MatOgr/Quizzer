@@ -104,7 +104,7 @@ bool Room::getGameState() {
 void Room::setGameState(const bool state) {
     this->game_running = state;
 }
-
+// checks whether each player in the Room is ready to play (pressed the button PLAY)
 bool Room::checkReady() {
     for(User * u : players) 
         if (!u->getReady())
@@ -121,7 +121,7 @@ void Room::sendQuestionsToUsers() {
             append(q->getAnswers()).
             append(to_string(q->getCorrect()));
         for (User * x : players) 
-            srv->sendMsg(x->getSocket(), q_temp, q_temp.length());
+            srv->sendMsg(x->getSocket(), q_temp);
 
         //  wait for user response ???
     }
@@ -140,5 +140,5 @@ void Room::end() {
     setGameState(false);
     string finalRanking = getRanking();
     for(User * u : players) 
-        srv->sendMsg(u->getSocket(), finalRanking, finalRanking.length());
+        srv->sendMsg(u->getSocket(), finalRanking);
 }
