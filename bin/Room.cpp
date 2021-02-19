@@ -139,6 +139,8 @@ void Room::start() {
 void Room::end() {
     setGameState(false);
     string finalRanking = getRanking();
-    for(User * u : players) 
-        srv->sendMsg(u->getSocket(), finalRanking);
+    for(User* u : players) {
+        srv->sendMsg(u->getSocket(), finalRanking + "\n~");
+        u->setReady(true);
+    }
 }

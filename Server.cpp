@@ -55,7 +55,12 @@ Server::~Server() {
 }
 
 //  ### TODO
-void Server::connectUser(const int usr) {}
+void Server::connectUser(const int usr) {
+    unique_lock<mutex> lock_user{usr_mutex};
+    users_list.push_back(User(to_string(usr), usr, false));
+    string greetings = "Welcome user " + to_string(usr) + "!";
+    sendMsg(usr, greetings);
+}
 //  TO CHECK
 void Server::disconnectUser(const int usr) {
     unique_lock<mutex> lock_user{usr_mutex};
@@ -245,6 +250,7 @@ int Server::run() {
         that_user->server_state = &running;
         that_user->usr_con_sock = client;
         that_user->room_id = -1;
+        connectUser(client);
         thread(clientRoutine, that_user);
         // pthread_create(&thread_id, NULL, clientRoutine, (void *)that_user);
     }
