@@ -7,7 +7,7 @@ Question::Question() :
     topic("life")/*, 
     points(100) */{};
 
-Question::Question(const string cont, const string answs, const int ans_nr, const string topic, const int pts) :
+Question::Question(const string cont, const string answs, const int ans_nr, const string topic) :
     content(cont), 
     answers(answs), 
     correct_answer(ans_nr), 

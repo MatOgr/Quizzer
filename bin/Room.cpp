@@ -65,8 +65,9 @@ bool Room::addPlayer(User * plyr) {
 // removes pointer to the leaving player from 'players' list
 bool Room::removePlayer(int plyr_id) {
     
-    auto leaving = find(players.begin(), players.end(), 
-        [&plyr_id](User * u) { return u && (u->getSocket() == plyr_id); });
+    auto leaving = find(players.begin(), players.end(), [&plyr_id](User * u) { 
+        return u && (u->getSocket() == plyr_id); 
+    });
     
     if (leaving != players.end()) {
         cout << "Player " << (*leaving)->getNick() << " is leaving..." << endl;

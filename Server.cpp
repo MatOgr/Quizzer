@@ -54,7 +54,7 @@ Server::~Server() {
     questions_list.clear();
 }
 
-//  ### TODO
+//  Creates new User and pushes it to the users_list
 void Server::connectUser(const int usr) {
     unique_lock<mutex> lock_user{usr_mutex};
     users_list.push_back(User(to_string(usr), usr, false));
@@ -110,31 +110,9 @@ void Server::setUserReady(const int usr, const bool ready) {
 void Server::sendMsg(const int id, const string content) {
     write(id, content.c_str(), content.length());
 }
-//  TO CHECK -- or DELETE???
-string Server::readThread(int fd, userThread *that_usr, bool * connection) {
-    char *buffer = new char[BUFFER_SIZE];
-    char *temp = new char[2];
-    memset(buffer, '\0', sizeof(char) * BUFFER_SIZE - 1);
-    memset(temp, '\0', 2);
-    int read_status;
-    do {
-        if((read_status = read(fd, temp, 1)) < 0) {
-            cout << "Couldn't read message" << endl;
-            pthread_exit(NULL);
-        }
-        else if (read_status == 0) {
-            *connection = false;
-            break;
-        }
-        strcat(buffer, temp);
-    } while(strcmp(temp, "\n"));
-
-    delete buffer;
-    delete temp;
-}
 
 
-//  ### TODO
+//  provides managment of messages exchange between Server and Clients 
 void * Server::clientRoutine(void *that_user) {
     // pthread_detach(pthread_self());
     
@@ -197,7 +175,7 @@ void * Server::clientRoutine(void *that_user) {
         header = 0;
     }
     // handler closing - user leaving connection
-    response = "You have been disconnected - hope U kno what'ya doin'...";
+    response = "You have been disconnected - world's cruel, hope U kno what'ya doin'...";
     sendMsg(this_usr->usr_con_sock, response);
     disconnectUser(this_usr->usr_con_sock);
     // if(this_usr->room_id >= 0) 
@@ -216,13 +194,16 @@ vector<Question*> Server::getQuestions(const string category, const int number) 
 //  TO CHECK
 void Server::readQuestions(const string fdir) {
     string buffer;
-    ifstream read_it("quest_base.txt");
+    ifstream read_it("./resources/quest_base.txt");
     while(getline(read_it, buffer)) {
         addQuestion(buffer);
     }
     read_it.close();
 }
-//  TO CHECK
+/*
+    create Question object parsing given 'content' into constructor and push it to questions_list vector
+    
+*/
 void Server::addQuestion(string content) {
     string category, q_content, answers, correct;
     category = content.substr(0, content.find(':'));
