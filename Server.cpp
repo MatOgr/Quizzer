@@ -44,11 +44,13 @@ Server::Server() {
         perror("Listen failed");
         this->~Server();
     }
+    readQuestions("./resources/quest_base.txt");
 }
 
 //  closes file descriptor also
 Server::~Server() {
     close(this->socket_nr);
+    saveQuestions("./resources/quest_base.txt");
     rooms_list.clear();
     users_list.clear();
     questions_list.clear();
@@ -68,8 +70,7 @@ void Server::disconnectUser(const int usr) {
         u.getSocket() == usr;
     });
 }
-//  TO CONSIDER...
-void Server::closeRoom() {}
+
 //  To check
 bool Server::createRoom() {
     unique_lock<mutex> lck {rm_mutex};
@@ -191,18 +192,28 @@ vector<Question*> Server::getQuestions(const string category, const int number) 
     
     return filtered;
 }
-//  TO CHECK
+//  save questions_list to resource file 
+void Server::saveQuestions(string const fdir) {
+    ofstream write_it;
+    write_it.open(fdir, ios::out | ios::trunc);
+    for(Question& quest : questions_list) {
+        write_it << endl << quest.getTopic() << ":" << quest.getContent() << ":" << quest.getAnswers() << ":" << quest.getCorrect();
+    }
+    write_it.close();
+}
+//  read questions from question-base file to the questions_list on the Server
 void Server::readQuestions(const string fdir) {
     string buffer;
-    ifstream read_it("./resources/quest_base.txt");
+    ifstream read_it(fdir);
     while(getline(read_it, buffer)) {
-        addQuestion(buffer);
+        if(buffer.size() > 5)
+            addQuestion(buffer);
     }
     read_it.close();
 }
 /*
     create Question object parsing given 'content' into constructor and push it to questions_list vector
-    
+
 */
 void Server::addQuestion(string content) {
     string category, q_content, answers, correct;

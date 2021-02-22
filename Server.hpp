@@ -34,7 +34,7 @@ public:
     void connectUser(const int usr);
     void disconnectUser(const int usr);
     
-    void closeRoom();
+    // void closeRoom();
     bool createRoom();
     
     void putUserOut(const int usr, const int room_id);
@@ -45,6 +45,7 @@ public:
     void sendMsg(const int id, const string content);
     void *clientRoutine(void *thread_data);
     
+    void saveQuestions(const string fdir);
     void readQuestions(const string fdir);
     void addQuestion(string content);
     vector<Question*> getQuestions(const string category, const int number);
