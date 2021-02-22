@@ -114,17 +114,18 @@ bool Room::checkReady() {
     return true;
 }
 // ### TODO some time control/response listener needed
-void Room::sendQuestionsToUsers() {
+void Room::sendQuestionToUsers(const int idx) {
     for(Question * q : questions) {
-        string q_temp;
+        string q_temp = "";
         q_temp.append("?").
-            append(q->getContent()).
-            append(q->getAnswers()).
+            append(q->getContent() + ":").
+            append(q->getAnswers() + ":").
             append(to_string(q->getCorrect()));
         for (User * x : players) 
             srv->sendMsg(x->getSocket(), q_temp);
 
         //  wait for user response ???
+        
     }
 }
 //  ## TODO - some countdown before the beginning
@@ -133,7 +134,9 @@ void Room::start() {
         loadQuestions(srv->getQuestions(category, questions_number));
         //  sleep(5);
         setGameState(true);
-        sendQuestionsToUsers();
+        for (int i = 0; i < questions.size(); i++)
+            sendQuestionToUsers(i);
+            sleep(20);
     }
 }
 //  To CHECK

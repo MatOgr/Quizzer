@@ -5,6 +5,7 @@
 #include "User.hpp"
 #include "Question.hpp"
 #include "../Server.hpp"
+#include <unistd.h>
 
 #define PLAYERS_NR 5
 #define QUESTION_NR 10
@@ -43,7 +44,7 @@ public:
 
     void loadQuestions(const vector<Question*> q_list);
     bool checkReady();
-    void sendQuestionsToUsers();
+    void sendQuestionToUsers(const int idx);
     void start();
     void end();
 };

@@ -63,7 +63,7 @@ void Server::connectUser(const int usr) {
     string greetings = "Welcome user " + to_string(usr) + "!";
     sendMsg(usr, greetings);
 }
-//  TO CHECK
+//  remove User by given 'usr' id from the users_list on a Server
 void Server::disconnectUser(const int usr) {
     unique_lock<mutex> lock_user{usr_mutex};
     remove_if(users_list.begin(), users_list.end(), [&](User& u) {
@@ -71,7 +71,7 @@ void Server::disconnectUser(const int usr) {
     });
 }
 
-//  To check
+//  create new Room and push it on the rooms_list on the Server
 bool Server::createRoom() {
     unique_lock<mutex> lck {rm_mutex};
     if(rooms_list.size() >= ROOMS_NR) {
@@ -82,7 +82,7 @@ bool Server::createRoom() {
     rooms_list.push_back(Room(this));
     return true;
 }
-//  To CHECK
+//  removes pointer to User of 'usr' id from Room of room_id
 void Server::putUserOut(const int usr, const int room_id) {
     if (room_id != -1) {
         unique_lock<mutex> lock_rooms{rm_mutex};
@@ -90,7 +90,7 @@ void Server::putUserOut(const int usr, const int room_id) {
         this->rooms_list.at(room_id).removePlayer(usr);
     }
 }
-//  To CHECK
+//  pushes pointer to User of 'usr' id to the Room's players_list
 void Server::putUserInRoom(const int usr, const int room_id) {
     unique_lock<mutex> lock_rooms{rm_mutex};
     unique_lock<mutex> lock_users{usr_mutex};
@@ -99,7 +99,7 @@ void Server::putUserInRoom(const int usr, const int room_id) {
     });
     rooms_list.at(room_id).addPlayer(user_found.base());
 }
-
+//  set User status while being in the Room 
 void Server::setUserReady(const int usr, const bool ready) {
     auto it = find_if(users_list.begin(), users_list.end(), [&](User& u) {
         u.getSocket() == usr;
@@ -115,7 +115,6 @@ void Server::sendMsg(const int id, const string content) {
 
 //  provides managment of messages exchange between Server and Clients 
 void * Server::clientRoutine(void *that_user) {
-    // pthread_detach(pthread_self());
     
     bool connected = true;
     userThread *this_usr = (userThread*)that_user;
@@ -183,12 +182,15 @@ void * Server::clientRoutine(void *that_user) {
         // this_usr->rooms_list.removePlayer(this_usr->player_id);
 }
 
-//  TO CHECK
+//  return vector of Questions of given 'category'
 vector<Question*> Server::getQuestions(const string category, const int number) {
     vector<Question*> filtered;
-    for(Question q : questions_list) 
-        if (q.getTopic() == category && filtered.size() < number)
+    for(Question q : questions_list) { 
+        if(filtered.size() < number)
+            break;
+        if (q.getTopic() == category || q.getTopic() == "random")
             filtered.push_back(&q);
+    }
     
     return filtered;
 }
@@ -227,7 +229,7 @@ void Server::addQuestion(string content) {
     questions_list.push_back(Question(q_content, answers, stoi(correct), category));
 }
 
-// TO CHECK    ####    main job of this class, loop while server is running accepts incoming connections
+//  main job of this class, loop while server is running accepts incoming connections
 int Server::run() {
     
     while(this->running) {
@@ -237,14 +239,12 @@ int Server::run() {
             return 1;
         }
 
-        // pthread_t thread_id;
         userThread *that_user = new userThread;
         that_user->server_state = &running;
         that_user->usr_con_sock = client;
         that_user->room_id = -1;
         connectUser(client);
         thread(clientRoutine, that_user);
-        // pthread_create(&thread_id, NULL, clientRoutine, (void *)that_user);
     }
 
     // close(socket_nr);
