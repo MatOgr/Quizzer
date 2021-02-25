@@ -37,7 +37,7 @@ public:
 
     void connectUser(const int usr);
     void disconnectUser(const int usr);
-    
+    void setNick(const int usr, const string new_nick);
     // void closeRoom();
     bool createRoom();
     

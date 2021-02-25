@@ -200,6 +200,13 @@ void Server::disconnectUser(const int usr) {
     });
 }
 
+void Server::setNick(const int usr, const string new_nick) {
+    auto user_found = find_if(users_list.begin(), users_list.end(), [&usr](User& u) {
+        return u.getSocket() == usr;
+    });
+    user_found->setNick(new_nick);
+}
+
 //  create new Room and push it on the rooms_list on the Server
 bool Server::createRoom() {
     unique_lock<mutex> lck {rm_mutex};
@@ -233,7 +240,7 @@ void Server::setUserReady(const int usr, const bool ready) {
     auto it = find_if(users_list.begin(), users_list.end(), [&usr](User& u) {
         return u.getSocket() == usr;
     });
-    it.base()->setReady(ready);
+    it->setReady(ready);
 }
 
 // sends message by Server of given 'content' to provided socket 'id'
@@ -256,7 +263,12 @@ void  Server::clientRoutine(void *that_user) {
             break;
 
         // instructions
-        if (header == '+') {      // add question
+        if (header == '@') {        //  change nick
+            read(this_usr->usr_con_sock, buffer, BUFFER_SIZE);
+            setNick(this_usr->usr_con_sock, buffer);
+            this_usr->player_nick = buffer;
+        }
+        else if (header == '+') {      // add question
             read(this_usr->usr_con_sock, buffer, BUFFER_SIZE);
             addQuestion(buffer);
         }
@@ -279,7 +291,7 @@ void  Server::clientRoutine(void *that_user) {
             if(header == '#') {           // leaving the server
                 connected = false;
             }      
-            else if(header == '@') {      // ready to play
+            else if(header == '&') {      // ready to play
                 setUserReady(this_usr->usr_con_sock, true);
             }
             else if(header == '%') {      // answer  ?? may be verification on client side???
@@ -384,7 +396,7 @@ void Server::run() {
 
             ///             MAIN LOOP
     while(this->running) {
-        // int client = accept(socket_nr, nullptr, nullptr);
+        int client = accept(socket_nr, nullptr, nullptr);
         // if(client == -1) {
         //     perror("Accept failed");
         //     return 1;
