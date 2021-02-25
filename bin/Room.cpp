@@ -14,6 +14,8 @@ Room::Room(Server *srv, User *player) :
 
  Room::~Room() {
      cout << "Room of category '" << category << "' has been closed..." << endl;
+     questions.clear();
+     players.clear();
  };
 
 // Sorts list of players playing in the Room by their scores and returns string containing whole scoretable
@@ -65,8 +67,8 @@ bool Room::addPlayer(User * plyr) {
 // removes pointer to the leaving player from 'players' list
 bool Room::removePlayer(int plyr_id) {
     
-    auto leaving = find(players.begin(), players.end(), [&plyr_id](User * u) { 
-        return u && (u->getSocket() == plyr_id); 
+    auto leaving = find_if(players.begin(), players.end(), [&plyr_id](User* u) { 
+        return u->getSocket() == plyr_id;
     });
     
     if (leaving != players.end()) {

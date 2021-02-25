@@ -2,7 +2,7 @@
 
 
 User::User() : 
-    nick(""), socket_id(-1), score(-1), ready_to_play(false), admin(false) {
+    nick("JoshNoName"), socket_id(-1), score(-1), ready_to_play(false), admin(false) {
         //cout << "No data provided" << endl;
     };
 

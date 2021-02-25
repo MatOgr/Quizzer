@@ -16,7 +16,7 @@ private:
 public:
     Question();
     Question(const string cont, const string answs, const int ans_nr, const string topic/*, const int pts*/);
-    ~Question();
+    // ~Question();
 
     string getContent();
     string getTopic();

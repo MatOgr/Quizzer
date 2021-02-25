@@ -1,7 +1,9 @@
 #ifndef Server_hpp
 #define Server_hpp
 
-#include "bin/Room.hpp"
+#include "Room.hpp"
+#include "Question.hpp"
+#include "User.hpp"
 
 using namespace std;
 
@@ -13,6 +15,8 @@ struct userThread {
     // mutex rooms_list_mutex;
     // mutex con_desc_mutex;
 };
+
+class Room;
 
 class Server {
 private:
@@ -29,7 +33,7 @@ public:
     Server();
     ~Server();
     
-    int run();
+    void run();
 
     void connectUser(const int usr);
     void disconnectUser(const int usr);
@@ -43,12 +47,49 @@ public:
 
     string readThread(const int fd, userThread *thread_data, bool *connection);
     void sendMsg(const int id, const string content);
-    void *clientRoutine(void *thread_data);
+    void clientRoutine(void *thread_data);
     
     void saveQuestions(const string fdir);
     void readQuestions(const string fdir);
     void addQuestion(string content);
     vector<Question*> getQuestions(const string category, const int number);
 };
+
+// class Room {
+// private:
+//     Server *srv;
+//     vector<User*> players;
+//     vector<Question*> questions;
+//     string category;
+//     int players_number;
+//     int questions_number;
+//     bool game_running;
+//     mutex room_mutex;
+// public:
+//     Room(Server * serv);
+//     Room(Server * serv, User * player);        // not needed???
+//     ~Room();
+
+//     string getRanking();  
+//     int getMaxPlayersNumber();
+//     int getCurrentPlayersNumber();
+//     int getQuestionsNumber();
+//     string getCategory();
+//     bool getGameState();
+
+//     bool addPlayer(User* plyr);
+//     bool removePlayer(int plyr_id);
+
+//     void setGameState(const bool state);
+//     void setCategory(const string cat);
+//     void setQuestionNumber(const int quest_num);
+//     void setPlayersNumber(const int number);
+
+//     void loadQuestions(const vector<Question*> q_list);
+//     bool checkReady();
+//     void sendQuestionToUsers(const int idx);
+//     void start();
+//     void end();
+// };
 
 #endif

@@ -10,40 +10,169 @@
 #include <ctime>
 #include <vector>
 
-#include "bin/Room.hpp"
-#include "bin/Question.hpp"
-#include "bin/User.hpp"
+#include "Server.hpp"
 
 #define ROOMS_NR 3
 #define PLAYERS_NR 5
 #define PORT 8081
 #define BUFFER_SIZE 255
+/*
+class Room {
+    Room(Server *srv) :
+        srv(srv), category("life"), players_number(PLAYERS_NR), questions_number(QUESTION_NR), game_running(false) {};
+    // probably unnecessary 
+    Room(Server *srv, User *player) :
+        srv(srv), category("life"), players_number(PLAYERS_NR), questions_number(QUESTION_NR), game_running(false) {
+            //  make player admin - pointers needed
+            players.clear();
+            // players.reserve(players_number);
+            player->setAdmin(true);
+            players.push_back(player);      
+        };
 
+    ~Room() {
+        cout << "Room of category '" << category << "' has been closed..." << endl;
+    };
 
+    // Sorts list of players playing in the Room by their scores and returns string containing whole scoretable
+    string getRanking() {
+        string ranking;
+        sort(players.begin(), players.end(), [](User* fst, User* snd) {
+            return fst->getScore() < snd->getScore();
+        });
+        int i = 1;
+        for(User * usr : players) {
+            ranking.append(to_string(i)).
+                append(". ").
+                append(usr->getNick()).
+                append("\t: \t").
+                append(to_string(usr->getScore())).
+                append("\n");
+            i++;
+        }
+        
+        return ranking;
+    }
+    // returns maximal players number
+    int getMaxPlayersNumber() {
+        return this->players_number;
+    }
+    // returns current number of players in the room
+    int getCurrentPlayersNumber() {
+        return this->players_number;
+    }
+    // returns maximal question number for considered room
+    int getQuestionsNumber() {
+        return this->questions_number;
+    }
+    // returns room's category 
+    string getCategory() {
+        return this->category;
+    }
+    // TO CHECK
+    bool addPlayer(User * plyr) {
+        if(players.size() == 0) 
+            plyr->setAdmin(true);
+
+        if(players.size() < players_number) {
+            this->players.push_back(plyr);
+            return true;
+        }
+        return false;
+    }
+    // removes pointer to the leaving player from 'players' list
+    bool removePlayer(int plyr_id) {
+        
+        auto leaving = find(players.begin(), players.end(), [&plyr_id](User * u) { 
+            return u && (u->getSocket() == plyr_id); 
+        });
+        
+        if (leaving != players.end()) {
+            cout << "Player " << (*leaving)->getNick() << " is leaving..." << endl;
+            if((*leaving)->getAdmin()) {
+                (*leaving)->setAdmin(false);
+                players.erase(leaving);
+                (*players.begin())->setAdmin(true);
+            } else 
+                players.erase(leaving);
+            return true;
+        }
+        return false;
+    }
+    // Sets category of Questions to 'cat' 
+    void setCategory(const string cat) {
+        this->category = cat;
+    }
+    // Sets max number of questions in the Room to 'quest_num'
+    void setQuestionNumber(const int quest_num) {
+        this->questions_number = quest_num;
+    }
+    // Sets max number of Users allowed to be inside this Room
+    void setPlayersNumber(const int plyr_number) {
+        this->players_number = plyr_number;
+    }
+    // Sets Questions list to provided 'q_list' list 
+    void loadQuestions(const vector<Question*> q_list) {
+        questions = q_list;
+    }
+    // checks whether the game is in progress
+    bool getGameState() {
+        return this->game_running;
+    }
+    // sets the game status - 'true' in progress, 'false' in other case 
+    void setGameState(const bool state) {
+        this->game_running = state;
+    }
+    // checks whether each player in the Room is ready to play (pressed the button PLAY)
+    bool Room::checkReady() {
+        for(User * u : players) 
+            if (!u->getReady())
+                return false;
+        
+        return true;
+    }
+    // ### TODO some time control/response listener needed
+    void sendQuestionToUsers(const int idx) {
+        for(Question * q : questions) {
+            string q_temp = "";
+            q_temp.append("?").
+                append(q->getContent() + ":").
+                append(q->getAnswers() + ":").
+                append(to_string(q->getCorrect()));
+            for (User * x : players) 
+                srv->sendMsg(x->getSocket(), q_temp);
+
+            //  wait for user response ???
+            
+        }
+    }
+    //  ## TODO - some countdown before the beginning
+    void start() {
+        if (checkReady()) {
+            loadQuestions(srv->getQuestions(category, questions_number));
+            //  sleep(5);
+            setGameState(true);
+            for (int i = 0; i < questions.size(); i++)
+                sendQuestionToUsers(i);
+                sleep(20);
+        }
+    }
+    //  To CHECK
+    void end() {
+        setGameState(false);
+        string finalRanking = getRanking();
+        for(User* u : players) {
+            srv->sendMsg(u->getSocket(), finalRanking + "\n~");
+            u->setReady(true);
+        }
+    }
+
+};
+*/
 //  to check
 Server::Server() {
     running = true;
-    socket_nr = socket(AF_INET, SOCK_STREAM, IPPROTO_TCP);
-    if(socket_nr == -1) {
-        perror("Creating socket failed");
-        this->~Server();
-    }
     
-    sockaddr_in serv_addr {
-        .sin_family = AF_INET,
-        .sin_port = htons((uint16_t)PORT),
-        .sin_addr = htonl(INADDR_ANY)
-    };
-    
-    if (int binding = bind(socket_nr, (sockaddr*) &serv_addr, sizeof(serv_addr))) {
-        perror("Binding failed");
-        this->~Server();
-    }
-
-    if(listen(socket_nr, 1)) {
-        perror("Listen failed");
-        this->~Server();
-    }
     readQuestions("./resources/quest_base.txt");
 }
 
@@ -66,8 +195,8 @@ void Server::connectUser(const int usr) {
 //  remove User by given 'usr' id from the users_list on a Server
 void Server::disconnectUser(const int usr) {
     unique_lock<mutex> lock_user{usr_mutex};
-    remove_if(users_list.begin(), users_list.end(), [&](User& u) {
-        u.getSocket() == usr;
+    remove_if(users_list.begin(), users_list.end(), [&usr](User& u) {
+        return u.getSocket() == usr;
     });
 }
 
@@ -94,15 +223,15 @@ void Server::putUserOut(const int usr, const int room_id) {
 void Server::putUserInRoom(const int usr, const int room_id) {
     unique_lock<mutex> lock_rooms{rm_mutex};
     unique_lock<mutex> lock_users{usr_mutex};
-    auto user_found = find_if(users_list.begin(), users_list.end(), [&](User& u) {
-        u.getSocket() == usr;
+    auto user_found = find_if(users_list.begin(), users_list.end(), [&usr](User& u) {
+        return u.getSocket() == usr;
     });
     rooms_list.at(room_id).addPlayer(user_found.base());
 }
 //  set User status while being in the Room 
 void Server::setUserReady(const int usr, const bool ready) {
-    auto it = find_if(users_list.begin(), users_list.end(), [&](User& u) {
-        u.getSocket() == usr;
+    auto it = find_if(users_list.begin(), users_list.end(), [&usr](User& u) {
+        return u.getSocket() == usr;
     });
     it.base()->setReady(ready);
 }
@@ -114,7 +243,7 @@ void Server::sendMsg(const int id, const string content) {
 
 
 //  provides managment of messages exchange between Server and Clients 
-void * Server::clientRoutine(void *that_user) {
+void  Server::clientRoutine(void *that_user) {
     
     bool connected = true;
     userThread *this_usr = (userThread*)that_user;
@@ -215,7 +344,6 @@ void Server::readQuestions(const string fdir) {
 }
 /*
     create Question object parsing given 'content' into constructor and push it to questions_list vector
-
 */
 void Server::addQuestion(string content) {
     string category, q_content, answers, correct;
@@ -230,24 +358,49 @@ void Server::addQuestion(string content) {
 }
 
 //  main job of this class, loop while server is running accepts incoming connections
-int Server::run() {
+void Server::run() {
     
-    while(this->running) {
-        int client = accept(socket_nr, nullptr, nullptr);
-        if(client == -1) {
-            perror("Accept failed");
-            return 1;
-        }
+    sockaddr_in serv_addr {};
+    serv_addr.sin_family = AF_INET;
+    serv_addr.sin_port = htons((uint16_t)PORT);
+    serv_addr.sin_addr.s_addr = htonl(INADDR_ANY);
 
-        userThread *that_user = new userThread;
-        that_user->server_state = &running;
-        that_user->usr_con_sock = client;
-        that_user->room_id = -1;
-        connectUser(client);
-        thread(clientRoutine, that_user);
+    socket_nr = socket(AF_INET, SOCK_STREAM, 0);
+    if(socket_nr == -1) {
+        perror("Creating socket failed");
+        this->~Server();
+    }
+    
+    
+    if (int binding = bind(socket_nr, (sockaddr*) &serv_addr, sizeof(serv_addr))) {
+        perror("Binding failed");
+        this->~Server();
     }
 
-    // close(socket_nr);
+    if(listen(socket_nr, 1)) {
+        perror("Listen failed");
+        this->~Server();
+    }
 
-    return 0;
+            ///             MAIN LOOP
+    while(this->running) {
+        // int client = accept(socket_nr, nullptr, nullptr);
+        // if(client == -1) {
+        //     perror("Accept failed");
+        //     return 1;
+        // }
+
+        // userThread *that_user = new userThread;
+        // that_user->server_state = &running;
+        // that_user->usr_con_sock = client;
+        // that_user->room_id = -1;
+        // connectUser(client);
+        // thread(clientRoutine, that_user);
+        cout << "I'm RUNNING\n";
+        sleep(5);
+        this->running = false;
+    }
+
+    this->~Server();
+    // return 0;
 }

@@ -15,7 +15,7 @@ private:
 public: 
     User();
     User(const string nick, const int socket, const bool admin);
-    ~User();
+    // ~User();
 
     int getSocket();
     int getScore();

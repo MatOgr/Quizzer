@@ -2,15 +2,18 @@
 #define Room_hpp
 
 #include <bits/stdc++.h>
-#include "User.hpp"
-#include "Question.hpp"
-#include "../Server.hpp"
 #include <unistd.h>
+
+#include "Server.hpp"
+#include "Question.hpp"
+#include "User.hpp"
 
 #define PLAYERS_NR 5
 #define QUESTION_NR 10
 
 using namespace std;
+
+class Server;
 
 class Room {
 private:
@@ -21,7 +24,7 @@ private:
     int players_number;
     int questions_number;
     bool game_running;
-    mutex room_mutex;
+    // mutex room_mutex;
 public:
     Room(Server* serv);
     Room(Server* serv, User * player);        // not needed???

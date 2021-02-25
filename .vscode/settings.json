@@ -1,0 +1,11 @@
+{
+    "files.associations": {
+        "string": "cpp",
+        "iostream": "cpp",
+        "*.tcc": "cpp",
+        "new": "cpp",
+        "array": "cpp",
+        "string_view": "cpp"
+    },
+    "python.pythonPath": "/usr/bin/python3"
+}
