@@ -29,7 +29,7 @@ public:
     void setScore(const int score);
     void addToScore(const int points);
     void setRoom(const int id);
-    void setNick(const string nik);
+    void setNick(const string nick);
     void setReady(const bool ready);
     void setAdmin(const bool admin);
 };

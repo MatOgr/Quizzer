@@ -2,12 +2,12 @@
 
 
 User::User() : 
-    nick("JoshNoName"), socket_id(-1), score(-1), ready_to_play(false), admin(false) {
+    nick("JoshNoName"), socket_id(-1), room_id(-1), score(0), ready_to_play(false), admin(false) {
         //cout << "No data provided" << endl;
     };
 
 User::User(const string nick, const int socket, const bool admin) : 
-    nick(nick), socket_id(socket), score(0), ready_to_play(false), admin(admin) {};
+    nick(nick), socket_id(socket), room_id(-1), score(0), ready_to_play(false), admin(admin) {};
 
 // return socket descriptor that this User is connected to
 int User::getSocket() {
@@ -50,8 +50,8 @@ void User::setRoom(const int id) {
     room_id = id;
 }
 // unique in the whole server 
-void User::setNick(const string nik) {
-    this->nick = nik;
+void User::setNick(const string nick) {
+    this->nick = nick;
 }
 // specifies whether the User is ready to start quizz
 void User::setReady(const bool ready) {
