@@ -60,6 +60,7 @@ bool Room::addPlayer(User * plyr) {
 
     if(players.size() < players_number) {
         this->players.push_back(plyr);
+        srv->sendMsg(plyr->getSocket(), plyr->getAdmin() ? "adm" : "reg");
         return true;
     }
     return false;
