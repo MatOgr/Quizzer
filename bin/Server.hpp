@@ -36,7 +36,7 @@ public:
     int run();
     bool* getStatus();
 
-    void connectUser(const int usr);
+    void connectUser(shared_ptr<User> usr);
     void disconnectUser(const int usr);
     void setNick(const int usr, const string new_nick);
 
@@ -48,7 +48,7 @@ public:
 
     string readThread(const int fd, userThread *thread_data, bool *connection);
     void sendMsg(const int id, const string content);
-    void clientRoutine(void * thread_data);
+    void clientRoutine(shared_ptr<User> this_usr);
     
     void saveQuestions(const string fdir);
     void readQuestions(const string fdir);

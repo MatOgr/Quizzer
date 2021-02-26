@@ -32,7 +32,7 @@ Server::Server() {
         this->~Server();
     }
     
-    if (int binding = bind(socket_nr, (sockaddr*) &serv_addr, sizeof(serv_addr))) {
+    if (bind(socket_nr, (sockaddr*) &serv_addr, sizeof(serv_addr))) {
         perror("Binding failed");
         this->~Server();
     }
@@ -47,6 +47,8 @@ Server::Server() {
 
 //  closes file descriptor also
 Server::~Server() {
+    cout << "Starting shutdown" << endl;
+    sleep(5);
     close(this->socket_nr);
     saveQuestions("./resources/quest_base.txt");
     rooms_list.clear();
@@ -55,11 +57,11 @@ Server::~Server() {
 }
 
 //  Creates new User and pushes it to the users_list
-void Server::connectUser(const int usr) {
+void Server::connectUser(shared_ptr<User> usr) {
     unique_lock<mutex> lock_user{usr_mutex};
-    users_list.push_back(User(to_string(usr), usr, false));
-    string greetings = "Welcome user " + to_string(usr) + "!";
-    sendMsg(usr, greetings);
+    users_list.push_back(*usr);
+    string greetings = "Welcome user " + to_string(usr->getSocket()) + "!";
+    sendMsg(usr->getSocket(), greetings);
 }
 //  remove User by given 'usr' id from the users_list on a Server
 void Server::disconnectUser(const int usr) {
@@ -123,70 +125,73 @@ void Server::sendMsg(const int id, const string content) {
 
 
 //  provides managment of messages exchange between Server and Clients 
-void Server::clientRoutine(void* that_user) {
+void Server::clientRoutine(shared_ptr<User> this_usr) {
     
     bool connected = true;
-    userThread *this_usr = (userThread*)that_user;
+    // userThread *this_usr = (userThread*)that_user;
 
     char buffer[BUFFER_SIZE], header;
     string response;
 
-    while(connected && *(this_usr->server_state)) {
-        if(read(this_usr->usr_con_sock, &header, 1) <= 0)
+    while(connected && this->running) {
+        if(read(this_usr->getSocket(), &header, 1) <= 0)
             break;
 
         // instructions
         if (header == '@') {        //  change nick
-            read(this_usr->usr_con_sock, buffer, BUFFER_SIZE);
-            setNick(this_usr->usr_con_sock, buffer);
-            this_usr->player_nick = buffer;
+            read(this_usr->getSocket(), buffer, BUFFER_SIZE);
+            setNick(this_usr->getSocket(), buffer);
+            this_usr->getNick() = buffer;
         }        
+        else if(header == 'Q') {
+            this->running = false;
+        }
         else if(header == '#') {           // leaving the server
-            popUserOut(this_usr->usr_con_sock, this_usr->room_id);
+            popUserOut(this_usr->getSocket(), this_usr->getRoom());
             connected = false;
         }  
-        else if (this_usr->room_id == -1) {
+        else if (this_usr->getRoom() == -1) {
             if (header == '*') {           // create the room
                 response = (this->createRoom()) ? 
                 "Room has been created" : "Couldn't create new room - may be the limit was reached...";
-                sendMsg(this_usr->usr_con_sock, response);
+                sendMsg(this_usr->getSocket(), response);
             }
             else if(header == '>') {      // join the room
-                read(this_usr->usr_con_sock, buffer, 2);
+                read(this_usr->getSocket(), buffer, 2);
                 int r_id = stoi(buffer);
-                if (putUserInRoom(this_usr->usr_con_sock, r_id)) {
-                    this_usr->room_id = r_id;
+                if (putUserInRoom(this_usr->getSocket(), r_id)) {
+                    this_usr->setRoom(r_id);
                     response = "Welcome to Room number" + to_string(r_id);
-                    sendMsg(this_usr->usr_con_sock, response);
+                    sendMsg(this_usr->getSocket(), response);
                 } else 
-                    sendMsg(this_usr->usr_con_sock, "Couldn't join selected room - try another one!");
+                    sendMsg(this_usr->getSocket(), "Couldn't join selected room - try another one!");
             }
             else if (header == '+') {      // add question
-                read(this_usr->usr_con_sock, buffer, BUFFER_SIZE);
+                read(this_usr->getSocket(), buffer, BUFFER_SIZE);
                 addQuestion(buffer);
-                sendMsg(this_usr->usr_con_sock, "Question added!");
+                sendMsg(this_usr->getSocket(), "Question added!");
             }      
         }
         else {    
             if(header == '!') {      // ready to play
-                setUserReady(this_usr->usr_con_sock, true);
+                setUserReady(this_usr->getSocket(), true);
             }
             else if(header == '%') {      // answer ?? may be verification on client side???
                 
             }
             else if(header == '<') {      // leaving the room
-                popUserOut(this_usr->usr_con_sock, this_usr->room_id);
+                popUserOut(this_usr->getSocket(), this_usr->getRoom());
                 response = "So you left, take care, mate!";
-                sendMsg(this_usr->usr_con_sock, response);
+                sendMsg(this_usr->getSocket(), response);
             }
             else if(header == '$') {      // change category
-                read(this_usr->usr_con_sock, buffer, 255);
+                read(this_usr->getSocket(), buffer, 255);
                 response = buffer;
                 int r_id = stoi(response.substr(0, response.find(':')));
                 rooms_list.at(r_id).
                     setCategory(response.erase(0, response.find(':')));
                 response = "So you have changed the Room's category to " + response;
-                sendMsg(this_usr->usr_con_sock, response);
+                sendMsg(this_usr->getSocket(), response);
             }
         }
         memset(buffer, 0, BUFFER_SIZE);
@@ -194,17 +199,15 @@ void Server::clientRoutine(void* that_user) {
     }
     // handler closing - user leaving connection
     response = "You have been disconnected - world's cruel, hope U kno what'ya doin'...";
-    sendMsg(this_usr->usr_con_sock, response);
-    disconnectUser(this_usr->usr_con_sock);
-
-    delete this_usr;
+    sendMsg(this_usr->getSocket(), response);
+    disconnectUser(this_usr->getSocket());
 }
 
 //  return vector of Questions of given 'category'
 vector<Question*> Server::getQuestions(const string category, const int number) {
     vector<Question*> filtered;
     for(Question q : questions_list) { 
-        if(filtered.size() < number)
+        if((int)filtered.size() < number)
             break;
         if (q.getTopic() == category || q.getTopic() == "random")
             filtered.push_back(&q);
@@ -259,21 +262,18 @@ int Server::run() {
             ///             MAIN LOOP
     //  First Approach
     while(this->running) {
-        // int client = accept(socket_nr, nullptr, nullptr);
-        // if(client == -1) {
-        //     perror("Accept failed");
-        //     return 1;
-        // }
+        int client = accept(socket_nr, nullptr, nullptr);
+        if(client == -1) {
+            perror("Accept failed");
+            return 1;
+        }
 
-        // userThread *that_user = new userThread();
-        // that_user->server_state = &running;
-        // that_user->usr_con_sock = client;
-        // that_user->room_id = -1;
-        // connectUser(client);
-        // thread th(&Server::clientRoutine, this, (void *)that_user);
-        cout << "I'm RUNNING" /*<< th.get_id()*/ << endl;
-        sleep(5);
-        this->running = false;
+        auto that_user = make_shared<User>("NewOne", client, false);
+        connectUser(that_user);
+        thread th(&Server::clientRoutine, this, that_user);
+        cout << "I'm RUNNING (client_" << th.get_id() << ")" << endl;
+        sleep(2);
+        // this->running = false;
     }
 
     return 0;

@@ -58,7 +58,7 @@ bool Room::addPlayer(User * plyr) {
     if(players.size() == 0) 
         plyr->setAdmin(true);
 
-    if(players.size() < players_number) {
+    if((int)players.size() < players_number) {
         this->players.push_back(plyr);
         srv->sendMsg(plyr->getSocket(), plyr->getAdmin() ? "adm" : "reg");
         return true;
@@ -137,9 +137,10 @@ void Room::start() {
         loadQuestions(srv->getQuestions(category, questions_number));
         //  sleep(5);
         setGameState(true);
-        for (int i = 0; i < questions.size(); i++)
+        int len = questions.size();
+        for (int i = 0; i < len; i++) 
             sendQuestionToUsers(i);
-            sleep(20);
+        sleep(20);
     }
 }
 //  To CHECK

@@ -9,11 +9,15 @@ User::User() :
 User::User(const string nick, const int socket, const bool admin) : 
     nick(nick), socket_id(socket), score(0), ready_to_play(false), admin(admin) {};
 
-// name says all
+// return socket descriptor that this User is connected to
 int User::getSocket() {
     return this->socket_id;
 }
-// name says all
+// returns Room's id that User is in - -1 if not in any Room
+int User::getRoom() {
+    return room_id;
+}
+// return current amount of points gained by User
 int User::getScore() {
     return this->score;
 }
@@ -40,6 +44,10 @@ void User::setScore(const int score) {
 // increments User score by given #points value
 void User::addToScore(const int points) {
     this->score += points;
+}
+// set Room's id that User uses - -1 if none
+void User::setRoom(const int id) {
+    room_id = id;
 }
 // unique in the whole server 
 void User::setNick(const string nik) {
