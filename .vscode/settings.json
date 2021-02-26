@@ -6,7 +6,9 @@
         "new": "cpp",
         "array": "cpp",
         "string_view": "cpp",
-        "thread": "cpp"
+        "thread": "cpp",
+        "sstream": "cpp",
+        "regex": "cpp"
     },
     "python.pythonPath": "/usr/bin/python3"
 }

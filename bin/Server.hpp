@@ -40,7 +40,7 @@ public:
     void disconnectUser(const int usr);
     void setNick(const int usr, const string new_nick);
 
-    bool createRoom();
+    int createRoom();
     
     void popUserOut(const int usr, const int room_id);
     bool putUserInRoom(const int usr, const int room_id);

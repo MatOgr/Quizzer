@@ -4,12 +4,12 @@
 using namespace std;
 
 int main() {
-    Server server;
+    Server *server = new Server();
     
     cout << "Say hello!\n";
 
     //  First approach
-    server.run();
+    server->run();
 
     /*      Second approach - 
 
@@ -20,6 +20,8 @@ int main() {
         cout << "Connected some user" << endl;
     }
     */
+
+   delete server;
 
     return 0;
 }

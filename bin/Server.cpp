@@ -48,12 +48,13 @@ Server::Server() {
 //  closes file descriptor also
 Server::~Server() {
     cout << "Starting shutdown" << endl;
-    sleep(5);
     close(this->socket_nr);
     saveQuestions("./resources/quest_base.txt");
-    rooms_list.clear();
-    users_list.clear();
-    questions_list.clear();
+    sleep(5);
+    rooms_list.clear();     cout << "Cleared the rooms list" << endl;       sleep(2);
+    users_list.clear();     cout << "Cleared the users list" << endl;       sleep(2);
+    questions_list.clear();     cout << "Cleared the questions list" << endl;       sleep(2);
+    cout << "Farewell" << endl;
 }
 
 //  Creates new User and pushes it to the users_list
@@ -80,25 +81,26 @@ void Server::setNick(const int usr, const string new_nick) {
         return u.getSocket() == usr;
     });
     user_found->setNick(new_nick);
+    sendMsg(usr, "Your nick was set to: " + user_found->getNick() + " ENJOY");
 }
 
 //  create new Room and push it on the rooms_list on the Server
-bool Server::createRoom() {
+int Server::createRoom() {
     unique_lock<mutex> lck {rm_mutex};
     if(rooms_list.size() >= ROOMS_NR) {
         cout << "There is no space for another room, choose one of already created\n";
-        return false;
+        return -1;
     }
 
     rooms_list.push_back(Room(this));
-    return true;
+    return rooms_list.size()-1;
 }
 //  removes pointer to User of 'usr' id from Room of room_id
 void Server::popUserOut(const int usr, const int room_id) {
     if (room_id != -1) {
         unique_lock<mutex> lock_rooms{rm_mutex};
         unique_lock<mutex> lock_users{usr_mutex};
-        this->rooms_list.at(room_id).removePlayer(usr);
+        this->rooms_list[room_id].removePlayer(usr);
     }
 }
 //  pushes pointer to User of 'usr' id to the Room's players_list
@@ -141,11 +143,13 @@ void Server::clientRoutine(weak_ptr<User> usr) {
             // instructions
             if (header == '@') {        //  change nick
                 read(this_usr->getSocket(), buffer, BUFFER_SIZE);
-                setNick(this_usr->getSocket(), buffer);
+                string nick(buffer); 
+                setNick(this_usr->getSocket(), nick.substr(0, nick.length()-1));        // TO CHECK
                 this_usr->getNick() = buffer;
             }        
             else if(header == 'Q') {
                 this->running = false;
+                // this->~Server();
             }
             else if(header == '#') {           // leaving the server
                 popUserOut(this_usr->getSocket(), this_usr->getRoom());
@@ -153,8 +157,10 @@ void Server::clientRoutine(weak_ptr<User> usr) {
             }  
             else if (this_usr->getRoom() == -1) {
                 if (header == '*') {           // create the room
-                    response = (this->createRoom()) ? 
+                    int id;
+                    response = (id = this->createRoom() >= 0) ? 
                     "Room has been created" : "Couldn't create new room - may be the limit was reached...";
+                    this_usr->setRoom(id);
                     sendMsg(this_usr->getSocket(), response);
                 }
                 else if(header == '>') {      // join the room
@@ -182,7 +188,8 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                 }
                 else if(header == '<') {      // leaving the room
                     popUserOut(this_usr->getSocket(), this_usr->getRoom());
-                    response = "So you left, take care, mate!";
+                    this_usr->setRoom(-1);
+                    response = "So you left our room, take care, mate!";
                     sendMsg(this_usr->getSocket(), response);
                 }
                 else if(header == '$') {      // change category
