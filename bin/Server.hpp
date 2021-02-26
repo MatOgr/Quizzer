@@ -48,7 +48,7 @@ public:
 
     string readThread(const int fd, userThread *thread_data, bool *connection);
     void sendMsg(const int id, const string content);
-    void clientRoutine(shared_ptr<User> this_usr);
+    void clientRoutine(weak_ptr<User> this_usr);
     
     void saveQuestions(const string fdir);
     void readQuestions(const string fdir);

@@ -125,82 +125,85 @@ void Server::sendMsg(const int id, const string content) {
 
 
 //  provides managment of messages exchange between Server and Clients 
-void Server::clientRoutine(shared_ptr<User> this_usr) {
+void Server::clientRoutine(weak_ptr<User> usr) {
     
     bool connected = true;
     // userThread *this_usr = (userThread*)that_user;
+    shared_ptr<User> this_usr = usr.lock();
+    if (this_usr) {
+        char buffer[BUFFER_SIZE], header;
+        string response;
 
-    char buffer[BUFFER_SIZE], header;
-    string response;
+        while(connected && this->running) {
+            if(read(this_usr->getSocket(), &header, 1) <= 0)
+                break;
 
-    while(connected && this->running) {
-        if(read(this_usr->getSocket(), &header, 1) <= 0)
-            break;
-
-        // instructions
-        if (header == '@') {        //  change nick
-            read(this_usr->getSocket(), buffer, BUFFER_SIZE);
-            setNick(this_usr->getSocket(), buffer);
-            this_usr->getNick() = buffer;
-        }        
-        else if(header == 'Q') {
-            this->running = false;
-        }
-        else if(header == '#') {           // leaving the server
-            popUserOut(this_usr->getSocket(), this_usr->getRoom());
-            connected = false;
-        }  
-        else if (this_usr->getRoom() == -1) {
-            if (header == '*') {           // create the room
-                response = (this->createRoom()) ? 
-                "Room has been created" : "Couldn't create new room - may be the limit was reached...";
-                sendMsg(this_usr->getSocket(), response);
-            }
-            else if(header == '>') {      // join the room
-                read(this_usr->getSocket(), buffer, 2);
-                int r_id = stoi(buffer);
-                if (putUserInRoom(this_usr->getSocket(), r_id)) {
-                    this_usr->setRoom(r_id);
-                    response = "Welcome to Room number" + to_string(r_id);
-                    sendMsg(this_usr->getSocket(), response);
-                } else 
-                    sendMsg(this_usr->getSocket(), "Couldn't join selected room - try another one!");
-            }
-            else if (header == '+') {      // add question
+            // instructions
+            if (header == '@') {        //  change nick
                 read(this_usr->getSocket(), buffer, BUFFER_SIZE);
-                addQuestion(buffer);
-                sendMsg(this_usr->getSocket(), "Question added!");
-            }      
-        }
-        else {    
-            if(header == '!') {      // ready to play
-                setUserReady(this_usr->getSocket(), true);
+                setNick(this_usr->getSocket(), buffer);
+                this_usr->getNick() = buffer;
+            }        
+            else if(header == 'Q') {
+                this->running = false;
             }
-            else if(header == '%') {      // answer ?? may be verification on client side???
-                
-            }
-            else if(header == '<') {      // leaving the room
+            else if(header == '#') {           // leaving the server
                 popUserOut(this_usr->getSocket(), this_usr->getRoom());
-                response = "So you left, take care, mate!";
-                sendMsg(this_usr->getSocket(), response);
+                connected = false;
+            }  
+            else if (this_usr->getRoom() == -1) {
+                if (header == '*') {           // create the room
+                    response = (this->createRoom()) ? 
+                    "Room has been created" : "Couldn't create new room - may be the limit was reached...";
+                    sendMsg(this_usr->getSocket(), response);
+                }
+                else if(header == '>') {      // join the room
+                    read(this_usr->getSocket(), buffer, 2);
+                    int r_id = stoi(buffer);
+                    if (putUserInRoom(this_usr->getSocket(), r_id)) {
+                        this_usr->setRoom(r_id);
+                        response = "Welcome to Room number" + to_string(r_id);
+                        sendMsg(this_usr->getSocket(), response);
+                    } else 
+                        sendMsg(this_usr->getSocket(), "Couldn't join selected room - try another one!");
+                }
+                else if (header == '+') {      // add question
+                    read(this_usr->getSocket(), buffer, BUFFER_SIZE);
+                    addQuestion(buffer);
+                    sendMsg(this_usr->getSocket(), "Question added!");
+                }      
             }
-            else if(header == '$') {      // change category
-                read(this_usr->getSocket(), buffer, 255);
-                response = buffer;
-                int r_id = stoi(response.substr(0, response.find(':')));
-                rooms_list.at(r_id).
-                    setCategory(response.erase(0, response.find(':')));
-                response = "So you have changed the Room's category to " + response;
-                sendMsg(this_usr->getSocket(), response);
+            else {    
+                if(header == '!') {      // ready to play
+                    setUserReady(this_usr->getSocket(), true);
+                }
+                else if(header == '%') {      // answer ?? may be verification on client side???
+                    
+                }
+                else if(header == '<') {      // leaving the room
+                    popUserOut(this_usr->getSocket(), this_usr->getRoom());
+                    response = "So you left, take care, mate!";
+                    sendMsg(this_usr->getSocket(), response);
+                }
+                else if(header == '$') {      // change category
+                    read(this_usr->getSocket(), buffer, 255);
+                    response = buffer;
+                    int r_id = stoi(response.substr(0, response.find(':')));
+                    rooms_list.at(r_id).
+                        setCategory(response.erase(0, response.find(':')));
+                    response = "So you have changed the Room's category to " + response;
+                    sendMsg(this_usr->getSocket(), response);
+                }
             }
+            memset(buffer, 0, BUFFER_SIZE);
+            header = 0;
         }
-        memset(buffer, 0, BUFFER_SIZE);
-        header = 0;
-    }
-    // handler closing - user leaving connection
-    response = "You have been disconnected - world's cruel, hope U kno what'ya doin'...";
-    sendMsg(this_usr->getSocket(), response);
-    disconnectUser(this_usr->getSocket());
+        // handler closing - user leaving connection
+        response = "You have been disconnected - world's cruel, hope U kno what'ya doin'...";
+        sendMsg(this_usr->getSocket(), response);
+        disconnectUser(this_usr->getSocket());
+    } else 
+        cout << "Sth wrong with clientRoutine()" << endl;
 }
 
 //  return vector of Questions of given 'category'
@@ -261,8 +264,10 @@ vector<Room>* Server::getRoomsList() {
 int Server::run() {
             ///             MAIN LOOP
     //  First Approach
+    sockaddr_in sdr{};
+    socklen_t len = sizeof(sdr);
     while(this->running) {
-        int client = accept(socket_nr, nullptr, nullptr);
+        int client = accept(socket_nr, (sockaddr*)&sdr, &len);
         if(client == -1) {
             perror("Accept failed");
             return 1;
@@ -270,8 +275,8 @@ int Server::run() {
 
         auto that_user = make_shared<User>("NewOne", client, false);
         connectUser(that_user);
-        thread th(&Server::clientRoutine, this, that_user);
-        cout << "I'm RUNNING (client_" << th.get_id() << ")" << endl;
+        thread (&Server::clientRoutine, this, that_user).detach();
+        cout << "I'm RUNNING (client)" << endl;
         sleep(2);
         // this->running = false;
     }
