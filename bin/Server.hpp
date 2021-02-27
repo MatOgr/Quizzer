@@ -36,7 +36,7 @@ public:
     
     void popUserOut(shared_ptr<User> usr);
     bool putUserInRoom(shared_ptr<User> usr, const int room_id);
-    void setUserReady(const int usr_id, const bool ready);
+    void setUserReady(shared_ptr<User> usr, const bool ready);
 
     void sendMsg(const int id, const string content);
     void clientRoutine(weak_ptr<User> this_usr);

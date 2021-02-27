@@ -58,9 +58,8 @@ bool Room::addPlayer(shared_ptr<User> plyr) {
 
     if((int)players.size() < players_number) {
         if(players.size() == 0) 
-        plyr->setAdmin(true);
+            plyr->setAdmin(true);
         this->players.push_back(&(*plyr));
-        srv->sendMsg(plyr->getSocket(), plyr->getAdmin() ? "adm" : "reg");
         return true;
     }
     return false;
@@ -71,13 +70,12 @@ bool Room::removePlayer(int plyr_id) {
     auto leaving = find_if(players.begin(), players.end(), [&plyr_id](User* u) { 
         return u->getSocket() == plyr_id;
     });
-
+    
     if (leaving != players.end()) {
         cout << "Player " << (*leaving)->getNick() << " is leaving..." << endl;
-        if((*leaving)->getAdmin()) {
-            (*leaving)->setAdmin(false);
+        if((*leaving)->getAdmin() && players.size() > 1) {
             players.erase(leaving);
-            (*players.begin())->setAdmin(true);
+            players[0]->setAdmin(true);
         } else 
             players.erase(leaving);
         return true;
@@ -110,7 +108,7 @@ void Room::setGameState(const bool state) {
 }
 // checks whether each player in the Room is ready to play (pressed the button PLAY)
 bool Room::checkReady() {
-    for(auto u : players) 
+    for(User* u : players) 
         if (!u->getReady())
             return false;
     
@@ -123,7 +121,7 @@ void Room::sendQuestionToUsers(const int idx) {
         q_temp.append("?").
             append(q->getContent() + ":").
             append(q->getAnswers() + ":").
-            append(to_string(q->getCorrect()));
+            append(to_string(q->getCorrect()) + "\n");
         for (auto x : players) 
             srv->sendMsg(x->getSocket(), q_temp);
 
@@ -133,22 +131,26 @@ void Room::sendQuestionToUsers(const int idx) {
 }
 //  ## TODO - some countdown before the beginning
 void Room::start() {
-    if (checkReady()) {
-        loadQuestions(srv->getQuestions(category, questions_number));
-        //  sleep(5);
-        setGameState(true);
-        int len = questions.size();
-        for (int i = 0; i < len; i++) 
-            sendQuestionToUsers(i);
-        sleep(20);
+    
+    loadQuestions(srv->getQuestions(category, questions_number));
+    cout << "Room " + this->getCategory() + " imported " + to_string(questions.size()) + " questions, game begins soon...\n";
+    sleep(3);
+    setGameState(true);
+    int len = questions.size();
+    for (int i = 0; i < len; i++) {
+        sendQuestionToUsers(i);
+        sleep(5);
     }
+    cout << "All questions sent in room " + this->category + "\n";
+    sleep(5);
+    this->end();
 }
 //  To CHECK
 void Room::end() {
     setGameState(false);
     string finalRanking = getRanking();
     for(auto u : players) {
-        srv->sendMsg(u->getSocket(), finalRanking + "\n~");
-        u->setReady(true);
+        srv->sendMsg(u->getSocket(), "~" + finalRanking);
+        u->setReady(false);
     }
 }
