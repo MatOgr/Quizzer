@@ -7,14 +7,6 @@
 
 using namespace std;
 
-struct userThread {
-    int usr_con_sock;
-    int room_id;
-    string player_nick;  
-    bool *server_state;
-    // mutex rooms_list_mutex;
-    // mutex con_desc_mutex;
-};
 
 class Room;
 
@@ -24,8 +16,8 @@ private:
     mutex usr_mutex;
     mutex rm_mutex;
     mutex qtns_mutex;
-    vector<Room> rooms_list;
-    vector<User> users_list;
+    vector<Room> rooms_list;        //  ptr to vector or vector of ptrs needed 
+    vector<User> users_list;        //  
     vector<Question> questions_list;
     bool running;
      
@@ -42,11 +34,10 @@ public:
 
     int createRoom();
     
-    void popUserOut(const int usr, const int room_id);
-    bool putUserInRoom(const int usr, const int room_id);
+    void popUserOut(shared_ptr<User> usr);
+    bool putUserInRoom(shared_ptr<User> usr, const int room_id);
     void setUserReady(const int usr_id, const bool ready);
 
-    string readThread(const int fd, userThread *thread_data, bool *connection);
     void sendMsg(const int id, const string content);
     void clientRoutine(weak_ptr<User> this_usr);
     

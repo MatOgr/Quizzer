@@ -27,7 +27,7 @@ private:
     // mutex room_mutex;
 public:
     Room(Server* serv);
-    Room(Server* serv, User * player);        // not needed???
+    Room(Server* serv, shared_ptr<User> player);        // not needed???
     ~Room();
 
     string getRanking();  
@@ -37,7 +37,7 @@ public:
     string getCategory();
     bool getGameState();
 
-    bool addPlayer(User* plyr);
+    bool addPlayer(shared_ptr<User> plyr);
     bool removePlayer(int plyr_id);
 
     void setGameState(const bool state);

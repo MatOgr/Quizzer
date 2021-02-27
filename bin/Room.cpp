@@ -3,13 +3,13 @@
 Room::Room(Server *srv) :
     srv(srv), category("life"), players_number(PLAYERS_NR), questions_number(QUESTION_NR), game_running(false) {};
 // probably unnecessary 
-Room::Room(Server *srv, User *player) :
+Room::Room(Server *srv, shared_ptr<User> player) :
     srv(srv), category("life"), players_number(PLAYERS_NR), questions_number(QUESTION_NR), game_running(false) {
         //  make player admin - pointers needed
         players.clear();
         // players.reserve(players_number);
         player->setAdmin(true);
-        players.push_back(player);      
+        players.push_back(&(*player));      
     };
 
  Room::~Room() {
@@ -25,7 +25,7 @@ string Room::getRanking() {
         return fst->getScore() < snd->getScore();
     });
     int i = 1;
-    for(User * usr : players) {
+    for(auto usr : players) {
         ranking.append(to_string(i)).
             append(". ").
             append(usr->getNick()).
@@ -54,12 +54,12 @@ string Room::getCategory() {
     return this->category;
 }
 // TO CHECK
-bool Room::addPlayer(User * plyr) {
-    if(players.size() == 0) 
-        plyr->setAdmin(true);
+bool Room::addPlayer(shared_ptr<User> plyr) {
 
     if((int)players.size() < players_number) {
-        this->players.push_back(plyr);
+        if(players.size() == 0) 
+        plyr->setAdmin(true);
+        this->players.push_back(&(*plyr));
         srv->sendMsg(plyr->getSocket(), plyr->getAdmin() ? "adm" : "reg");
         return true;
     }
@@ -71,7 +71,7 @@ bool Room::removePlayer(int plyr_id) {
     auto leaving = find_if(players.begin(), players.end(), [&plyr_id](User* u) { 
         return u->getSocket() == plyr_id;
     });
-    
+
     if (leaving != players.end()) {
         cout << "Player " << (*leaving)->getNick() << " is leaving..." << endl;
         if((*leaving)->getAdmin()) {
@@ -110,21 +110,21 @@ void Room::setGameState(const bool state) {
 }
 // checks whether each player in the Room is ready to play (pressed the button PLAY)
 bool Room::checkReady() {
-    for(User * u : players) 
+    for(auto u : players) 
         if (!u->getReady())
             return false;
     
-    return true;
+    return true && players.size() > 1;
 }
 // ### TODO some time control/response listener needed
 void Room::sendQuestionToUsers(const int idx) {
-    for(Question * q : questions) {
+    for(auto q : questions) {
         string q_temp = "";
         q_temp.append("?").
             append(q->getContent() + ":").
             append(q->getAnswers() + ":").
             append(to_string(q->getCorrect()));
-        for (User * x : players) 
+        for (auto x : players) 
             srv->sendMsg(x->getSocket(), q_temp);
 
         //  wait for user response ???
@@ -147,7 +147,7 @@ void Room::start() {
 void Room::end() {
     setGameState(false);
     string finalRanking = getRanking();
-    for(User* u : players) {
+    for(auto u : players) {
         srv->sendMsg(u->getSocket(), finalRanking + "\n~");
         u->setReady(true);
     }
