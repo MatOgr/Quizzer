@@ -9,19 +9,28 @@ Room::Room(Server *srv, shared_ptr<User> player) :
         players.clear();
         // players.reserve(players_number);
         player->setAdmin(true);
-        players.push_back(&(*player));      
+        players.push_back(player);      
     };
 
  Room::~Room() {
      cout << "Room of category '" << category << "' has been closed..." << endl;
      questions.clear();
-     players.clear();
+    //  players.clear();
  };
+
+string Room::getRoomInfo() {
+    string info = "";
+    info.append(this->category).append(":");
+    for(auto u : players) {
+        info.append(u->getNick());
+    }
+    return info;
+}
 
 // Sorts list of players playing in the Room by their scores and returns string containing whole scoretable
 string Room::getRanking() {
     string ranking;
-    sort(players.begin(), players.end(), [](User* fst, User* snd) {
+    sort(players.begin(), players.end(), [](auto fst, auto snd) {
         return fst->getScore() < snd->getScore();
     });
     int i = 1;
@@ -59,7 +68,7 @@ bool Room::addPlayer(shared_ptr<User> plyr) {
     if((int)players.size() < players_number) {
         if(players.size() == 0) 
             plyr->setAdmin(true);
-        this->players.push_back(&(*plyr));
+        this->players.push_back(plyr);
         return true;
     }
     return false;
@@ -67,7 +76,7 @@ bool Room::addPlayer(shared_ptr<User> plyr) {
 // removes pointer to the leaving player from 'players' list
 bool Room::removePlayer(int plyr_id) {
     
-    auto leaving = find_if(players.begin(), players.end(), [&plyr_id](User* u) { 
+    auto leaving = find_if(players.begin(), players.end(), [&plyr_id](auto u) { 
         return u->getSocket() == plyr_id;
     });
     
@@ -95,7 +104,7 @@ void Room::setPlayersNumber(const int plyr_number) {
     this->players_number = plyr_number;
 }
 // Sets Questions list to provided 'q_list' list 
-void Room::loadQuestions(const vector<Question*> q_list) {
+void Room::loadQuestions(vector<shared_ptr<Question>> q_list) {
     questions = q_list;
 }
 // checks whether the game is in progress
@@ -108,7 +117,7 @@ void Room::setGameState(const bool state) {
 }
 // checks whether each player in the Room is ready to play (pressed the button PLAY)
 bool Room::checkReady() {
-    for(User* u : players) 
+    for(auto u : players) 
         if (!u->getReady())
             return false;
     
@@ -123,10 +132,8 @@ void Room::sendQuestionToUsers(const int idx) {
             append(q->getAnswers() + ":").
             append(to_string(q->getCorrect()) + "\n");
         for (auto x : players) 
-            srv->sendMsg(x->getSocket(), q_temp);
-
-        //  wait for user response ???
-        
+            srv->sendMsg(x->getSocket(), q_temp);        
+        sleep(15);
     }
 }
 //  ## TODO - some countdown before the beginning
@@ -139,10 +146,9 @@ void Room::start() {
     int len = questions.size();
     for (int i = 0; i < len; i++) {
         sendQuestionToUsers(i);
-        sleep(5);
     }
-    cout << "All questions sent in room " + this->category + "\n";
-    sleep(5);
+    cout << "All questions sent in room " + this->category + ", time to count points\n";
+    sleep(15);
     this->end();
 }
 //  To CHECK

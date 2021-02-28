@@ -16,9 +16,9 @@ private:
     mutex usr_mutex;
     mutex rm_mutex;
     mutex qtns_mutex;
-    vector<Room> rooms_list;        //  ptr to vector or vector of ptrs needed 
-    vector<User> users_list;        //  
-    vector<Question> questions_list;
+    vector<shared_ptr<Room>> rooms_list;        //  ptr to vector or vector of ptrs needed 
+    vector<shared_ptr<User>> users_list;        //  
+    vector<shared_ptr<Question>> questions_list;
     bool running;
      
 public:
@@ -27,10 +27,11 @@ public:
     
     int run();
     bool* getStatus();
+    string getLobbyInfo();
 
     void connectUser(shared_ptr<User> usr);
     void disconnectUser(const int usr);
-    void setNick(const int usr, const string new_nick);
+    bool setNick(shared_ptr<User> usr, const string new_nick);
 
     int createRoom();
     
@@ -44,9 +45,9 @@ public:
     void saveQuestions(const string fdir);
     void readQuestions(const string fdir);
     void addQuestion(string content);
-    vector<Question*> getQuestions(const string category, const int number);
-    vector<User>* getUsersList();
-    vector<Room>* getRoomsList();
+    vector<shared_ptr<Question>> getQuestions(const string category, const int number);
+    // vector<User>* getUsersList();
+    vector<shared_ptr<Room>> getRoomsList();
 };
 
 

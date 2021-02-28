@@ -63,15 +63,15 @@ Server::~Server() {
 //  Creates new User and pushes it to the users_list
 void Server::connectUser(shared_ptr<User> usr) {
     unique_lock<mutex> lock_user{usr_mutex};
-    users_list.push_back(*usr);
+    users_list.push_back(usr);
     string greetings = "Welcome user " + usr->getNick() + "!\n";
     sendMsg(usr->getSocket(), greetings);
 }
 //  remove User by given 'usr' id from the users_list on a Server
 void Server::disconnectUser(const int usr) {
     unique_lock<mutex> lock_user{usr_mutex};
-    auto found = find_if(users_list.begin(), users_list.end(), [&usr](User& u) {
-        return u.getSocket() == usr;
+    auto found = find_if(users_list.begin(), users_list.end(), [&usr](auto u) {
+        return u->getSocket() == usr;
     });
     users_list.erase(found);
 }
@@ -80,12 +80,13 @@ bool* Server::getStatus() {
     return &running;
 }
 
-void Server::setNick(const int usr, const string new_nick) {
-    auto user_found = find_if(users_list.begin(), users_list.end(), [&usr](User& u) {
-        return u.getSocket() == usr;
-    });
-    user_found->setNick(new_nick);
-    sendMsg(usr, "Your nick was set to: " + user_found->getNick() + " ENJOY");
+bool Server::setNick(shared_ptr<User> usr, const string new_nick) {
+    for(auto u : users_list){
+        if (u->getNick() == new_nick)
+            return false;
+    }
+    usr->setNick(new_nick);
+    return true;
 }
 
 //  create new Room and push it on the rooms_list on the Server
@@ -95,8 +96,8 @@ int Server::createRoom() {
         cout << "There is no space for another room, choose one of already created\n";
         return -1;
     }
-
-    rooms_list.push_back(Room(this));
+    
+    rooms_list.push_back(make_shared<Room>(this));
     return rooms_list.size()-1;
 }
 //  removes pointer to User of 'usr' id from Room of room_id
@@ -104,7 +105,7 @@ void Server::popUserOut(shared_ptr<User> usr) {
     if (usr->getRoom() != -1) {
         unique_lock<mutex> lock_rooms{rm_mutex};
         unique_lock<mutex> lock_users{usr_mutex};
-        this->rooms_list[usr->getRoom()].removePlayer(usr->getSocket());
+        this->rooms_list[usr->getRoom()]->removePlayer(usr->getSocket());
         usr->setRoom(-1);
         usr->setAdmin(false);
     }
@@ -114,7 +115,7 @@ bool Server::putUserInRoom(shared_ptr<User> usr, const int room_id) {
     unique_lock<mutex> lock_rooms{rm_mutex};
     unique_lock<mutex> lock_users{usr_mutex};
     
-    return rooms_list[room_id].addPlayer(usr);
+    return rooms_list[room_id]->addPlayer(usr);
 }
 //  set User status while being in the Room 
 void Server::setUserReady(shared_ptr<User> usr, bool ready) {
@@ -122,8 +123,8 @@ void Server::setUserReady(shared_ptr<User> usr, bool ready) {
     usr->setReady(ready);
     int room_id = usr->getRoom();
     lock_users.unlock();        //      not sure if needed
-    if (rooms_list[room_id].checkReady())
-        rooms_list[room_id].start();
+    if (rooms_list[room_id]->checkReady())
+        rooms_list[room_id]->start();
 }
 
 // sends message by Server of given 'content' to provided socket 'id'
@@ -150,9 +151,8 @@ void Server::clientRoutine(weak_ptr<User> usr) {
             if (header == '@') {        //  change nick     -   '@new_nick:'
                 read(this_usr->getSocket(), buffer, BUFFER_SIZE);
                 string nick(buffer); 
-                this_usr->setNick(nick.substr(0, nick.find(':')));
-                // setNick(this_usr->getSocket(), nick.substr(0, nick.length()-1));        // TO CHECK
-                response = "Your nick was set to: " + this_usr->getNick() + " ENJOY\n";
+                response = setNick(this_usr, nick.substr(0, nick.find(':'))) ?  
+                    "Your nick was set to: " + this_usr->getNick() + " ENJOY\n" : "There's been that NICK, already\n";
             }        
             else if(header == 'Q') {            //  shutdown the server
                 this->running = false;
@@ -185,7 +185,7 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                     int r_id = stoi(response.substr(0, response.find(':')));
                     if (putUserInRoom(this_usr, r_id)) {
                         this_usr->setRoom(r_id);
-                        response = "Welcome to Room number " + to_string(r_id) + (this_usr->getAdmin() ? " (adm)" : " (reg)") + "\n";
+                        response = "Welcome to Room number "+ to_string(r_id) + (this_usr->getAdmin() ? " (ADM)" : " (REG)") + "\n";
                     } else 
                         response = "Couldn't join selected room - try another one!\n";
                 }
@@ -215,8 +215,7 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                     if(this_usr->getAdmin()) {
                         response = buffer;
                         response = response.substr(0, response.find(':'));
-                        // int r_id = stoi(response.substr(0, response.find(':')));
-                        rooms_list[this_usr->getRoom()].setCategory(response);
+                        rooms_list[this_usr->getRoom()]->setCategory(response);
                         response = "So you have changed the Room's category to " + response + "\n";
                     }
                     else 
@@ -226,7 +225,7 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                     read(this_usr->getSocket(), buffer, BUFFER_SIZE);   
                     if(this_usr->getAdmin()) {
                         response = buffer;
-                        auto room_in = &rooms_list[this_usr->getRoom()];
+                        auto room_in = rooms_list[this_usr->getRoom()];
                         room_in->setPlayersNumber(stoi(response));\
                         response = "You have changed the players number to " + to_string(room_in->getMaxPlayersNumber()) + "\n";
                     }
@@ -237,8 +236,7 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                     read(this_usr->getSocket(), buffer, BUFFER_SIZE);   
                     if(this_usr->getAdmin()) {
                         response = buffer;
-                        // response = response.substr(0, response.find(':'));
-                        auto room_in = &rooms_list[this_usr->getRoom()];
+                        auto room_in = rooms_list[this_usr->getRoom()];
                         room_in->setQuestionNumber(stoi(response));\
                         response = "You have changed the question number to " + to_string(room_in->getQuestionsNumber()) + "\n";
                     }
@@ -247,7 +245,7 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                 }
             }
             sendMsg(this_usr->getSocket(), response);
-            sleep(1);               //  to watch double response
+            sleep(1);             
             response = "";
             memset(buffer, 0, BUFFER_SIZE);
             header = 0;
@@ -262,13 +260,13 @@ void Server::clientRoutine(weak_ptr<User> usr) {
 }
 
 //  return vector of Questions of given 'category'
-vector<Question*> Server::getQuestions(const string category, const int number) {
-    vector<Question*> filtered;
-    for(Question q : questions_list) { 
-        if((int)filtered.size() < number)
+vector<shared_ptr<Question>> Server::getQuestions(const string category, const int number) {
+    vector<shared_ptr<Question>> filtered;
+    for(auto q : questions_list) { 
+        if((int)filtered.size() >= number)
             break;
-        if (q.getTopic() == category || q.getTopic() == "random")
-            filtered.push_back(&q);
+        if (q->getTopic() == category || q->getTopic() == "random")
+            filtered.push_back(q);
     }
     
     return filtered;
@@ -276,8 +274,8 @@ vector<Question*> Server::getQuestions(const string category, const int number) 
 //  save questions_list to resource file 
 void Server::saveQuestions(string const fdir) {
     ofstream write_it(fdir, ios::out | ios::trunc);
-    for(Question& quest : questions_list) {
-        write_it << quest.getTopic() << ":" << quest.getContent() << ":" << quest.getAnswers() << ":" << quest.getCorrect() << endl ;
+    for(auto quest : questions_list) {
+        write_it << quest->getTopic() << ":" << quest->getContent() << ":" << quest->getAnswers() << ":" << quest->getCorrect() << endl ;
     }
     write_it.close();
 }
@@ -304,15 +302,27 @@ void Server::addQuestion(string content) {
     answers = content.substr(0, content.find(':'));
     content.erase(0, content.find(':') + 1);
     correct = stoi(content);
-    questions_list.push_back(Question(q_content, answers, correct, category));
+    questions_list.push_back(make_shared<Question>(q_content, answers, correct, category));
 }
 
-vector<User>* Server::getUsersList() {
-    return &users_list;
+
+//  return string containig informations in format 'room_id:category:users_in:users_limit:game_state:' (e.g. 2:italian cuisine:6:11:OFF:)
+string Server::getLobbyInfo() {
+    string info = "";
+    int i = 1;
+    for(auto r : rooms_list) {
+        info.append(to_string(i)).append(":").
+            append(r->getCategory()).append(":").
+            append(to_string(r->getCurrentPlayersNumber())).append(":").
+            append(to_string(r->getMaxPlayersNumber())).
+            append(r->getGameState() ? ":ON:" : ":OFF:").
+            append("\n");
+    }
+    return info;
 }
 
-vector<Room>* Server::getRoomsList() {
-    return &rooms_list;
+vector<shared_ptr<Room>> Server::getRoomsList() {
+    return rooms_list;
 }
 
 //  main job of this class, loop while server is running accepts incoming connections

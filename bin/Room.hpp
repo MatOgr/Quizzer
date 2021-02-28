@@ -18,8 +18,8 @@ class Server;
 class Room {
 private:
     Server *srv;
-    vector<User*> players;
-    vector<Question*> questions;
+    vector<shared_ptr<User>> players;
+    vector<shared_ptr<Question>> questions;
     string category;
     int players_number;
     int questions_number;
@@ -36,6 +36,7 @@ public:
     int getQuestionsNumber();
     string getCategory();
     bool getGameState();
+    string getRoomInfo();
 
     bool addPlayer(shared_ptr<User> plyr);
     bool removePlayer(int plyr_id);
@@ -45,7 +46,7 @@ public:
     void setQuestionNumber(const int quest_num);
     void setPlayersNumber(const int number);
 
-    void loadQuestions(const vector<Question*> q_list);
+    void loadQuestions(vector<shared_ptr<Question>> q_list);
     bool checkReady();
     void sendQuestionToUsers(const int idx);
     void start();
