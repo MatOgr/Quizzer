@@ -124,7 +124,7 @@ void Server::setUserReady(shared_ptr<User> usr, bool ready) {
     int room_id = usr->getRoom();
     lock_users.unlock();        //      not sure if needed
     if (rooms_list[room_id]->checkReady())
-        rooms_list[room_id]->start();
+        thread (&Room::start, rooms_list[room_id]).detach();
 }
 
 // sends message by Server of given 'content' to provided socket 'id'
@@ -202,8 +202,8 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                 }
                 else if(header == '%') {      // set score for the played game      -   '%points:'
                     read(this_usr->getSocket(), buffer, BUFFER_SIZE);
-                    this_usr->setScore(stoi(buffer));
-                    response = "Your points have been set to " + to_string(this_usr->getScore()) + "\n";
+                    this_usr->addToScore(stoi(buffer));
+                    response = "Your current score: " + to_string(this_usr->getScore()) + "\n";
                 }
                 else if(header == '<') {      // leaving the room
                     popUserOut(this_usr);
@@ -271,6 +271,7 @@ vector<shared_ptr<Question>> Server::getQuestions(const string category, const i
     
     return filtered;
 }
+
 //  save questions_list to resource file 
 void Server::saveQuestions(string const fdir) {
     ofstream write_it(fdir, ios::out | ios::trunc);
@@ -279,6 +280,7 @@ void Server::saveQuestions(string const fdir) {
     }
     write_it.close();
 }
+
 //  read questions from question-base file to the questions_list on the Server
 void Server::readQuestions(const string fdir) {
     string buffer;
@@ -289,9 +291,8 @@ void Server::readQuestions(const string fdir) {
     }
     read_it.close();
 }
-/*
-    create Question object parsing given 'content' into constructor and push it to questions_list vector
-*/
+
+//  create Question object parsing given 'content' into constructor and push it to questions_list vector
 void Server::addQuestion(string content) {
     string category, q_content, answers;
     int correct;
@@ -304,7 +305,6 @@ void Server::addQuestion(string content) {
     correct = stoi(content);
     questions_list.push_back(make_shared<Question>(q_content, answers, correct, category));
 }
-
 
 //  return string containig informations in format 'room_id:category:users_in:users_limit:game_state:' (e.g. 2:italian cuisine:6:11:OFF:)
 string Server::getLobbyInfo() {
@@ -321,6 +321,7 @@ string Server::getLobbyInfo() {
     return info;
 }
 
+
 vector<shared_ptr<Room>> Server::getRoomsList() {
     return rooms_list;
 }
@@ -328,7 +329,6 @@ vector<shared_ptr<Room>> Server::getRoomsList() {
 //  main job of this class, loop while server is running accepts incoming connections
 int Server::run() {
             ///             MAIN LOOP
-    //  First Approach
     sockaddr_in sdr{};
     socklen_t len = sizeof(sdr);
     while(this->running) {
@@ -342,12 +342,8 @@ int Server::run() {
         connectUser(that_user);
         thread (&Server::clientRoutine, this, that_user).detach();
         cout << "I'm RUNNING (client)" << endl;
-        sleep(2);
-        // this->running = false;
+        sleep(1);
     }
 
     return 0;
-    /*   Second approach
-    return accept(socket_nr, nullptr, nullptr);
-    */
 }

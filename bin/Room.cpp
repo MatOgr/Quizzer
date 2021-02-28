@@ -31,7 +31,7 @@ string Room::getRoomInfo() {
 string Room::getRanking() {
     string ranking;
     sort(players.begin(), players.end(), [](auto fst, auto snd) {
-        return fst->getScore() < snd->getScore();
+        return fst->getScore() >= snd->getScore();
     });
     int i = 1;
     for(auto usr : players) {
@@ -124,7 +124,7 @@ bool Room::checkReady() {
     return true && players.size() > 1;
 }
 // ### TODO some time control/response listener needed
-void Room::sendQuestionToUsers(const int idx) {
+void Room::sendQuestionsToUsers() {
     for(auto q : questions) {
         string q_temp = "";
         q_temp.append("?").
@@ -143,10 +143,7 @@ void Room::start() {
     cout << "Room " + this->getCategory() + " imported " + to_string(questions.size()) + " questions, game begins soon...\n";
     sleep(3);
     setGameState(true);
-    int len = questions.size();
-    for (int i = 0; i < len; i++) {
-        sendQuestionToUsers(i);
-    }
+    sendQuestionsToUsers();
     cout << "All questions sent in room " + this->category + ", time to count points\n";
     sleep(15);
     this->end();

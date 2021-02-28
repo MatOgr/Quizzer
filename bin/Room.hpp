@@ -48,7 +48,7 @@ public:
 
     void loadQuestions(vector<shared_ptr<Question>> q_list);
     bool checkReady();
-    void sendQuestionToUsers(const int idx);
+    void sendQuestionsToUsers();
     void start();
     void end();
 };
