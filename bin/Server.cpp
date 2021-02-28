@@ -123,7 +123,8 @@ void Server::setUserReady(shared_ptr<User> usr, bool ready) {
     usr->setReady(ready);
     int room_id = usr->getRoom();
     lock_users.unlock();        //      not sure if needed
-    if (rooms_list[room_id]->checkReady())
+
+    if (rooms_list[room_id]->checkReady() && !rooms_list[room_id]->getGameState())
         thread (&Room::start, rooms_list[room_id]).detach();
 }
 
@@ -152,7 +153,7 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                 read(this_usr->getSocket(), buffer, BUFFER_SIZE);
                 string nick(buffer); 
                 response = setNick(this_usr, nick.substr(0, nick.find(':'))) ?  
-                    "Your nick was set to: " + this_usr->getNick() + " ENJOY\n" : "There's been that NICK, already\n";
+                    "+:Your nick was set to:" + this_usr->getNick() + " ENJOY\n" : "-:There's been that NICK, already\n";
             }        
             else if(header == 'Q') {            //  shutdown the server
                 this->running = false;
@@ -167,17 +168,17 @@ void Server::clientRoutine(weak_ptr<User> usr) {
             else if (this_usr->getRoom() == -1) {
                 if (header == '*') {           // create the room
                     int id = this->createRoom();
-                    response = (id >= 0) ? "Room has been created\n" : "Couldn't create new room - may be the limit was reached...\n";
+                    response = (id >= 0) ? "+:Room has been created\n" : "-:Couldn't create new room - may be the limit was reached...\n";
                     this_usr->setRoom(id);
                     if(id >= 0)
                         putUserInRoom(this_usr, id);
+                    
                 }
-                else if(header == '_') {        //  list the rooms ids interval
-                    int len = rooms_list.size() - 1;
-                    if(len >= 0)
-                        response = "Available rooms: 0 - " + to_string(len) + "\n";
+                else if(header == '_') {        //  lobby info
+                    if(rooms_list.size() - 1 >= 0)
+                        response = getLobbyInfo();
                     else 
-                        response = "There is no room to chose\n";
+                        response = "There is no room to choose\n";
                 }
                 else if(header == '>') {      // join the room  - '>room_nr:'
                     read(this_usr->getSocket(), buffer, BUFFER_SIZE);
@@ -185,9 +186,9 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                     int r_id = stoi(response.substr(0, response.find(':')));
                     if (putUserInRoom(this_usr, r_id)) {
                         this_usr->setRoom(r_id);
-                        response = "Welcome to Room number "+ to_string(r_id) + (this_usr->getAdmin() ? " (ADM)" : " (REG)") + "\n";
+                        response = "+:Welcome to Room number "+ to_string(r_id) + (this_usr->getAdmin() ? " (ADM)" : " (REG)") + "\n";
                     } else 
-                        response = "Couldn't join selected room - try another one!\n";
+                        response = "-:Couldn't join selected room - try another one!\n";
                 }
                 else if (header == '+') {      // add question      -   '+:content:ans1?ans2?ans3?ans4:correct_id_ans:'
                     read(this_usr->getSocket(), buffer, BUFFER_SIZE);
@@ -200,7 +201,11 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                     setUserReady(this_usr, true);
                     response = "You are READY!\n";
                 }
-                else if(header == '%') {      // set score for the played game      -   '%points:'
+                else if(header == '_') {
+                    response = rooms_list[this_usr->getRoom()]->getRoomInfo();
+                    sendMsg(this_usr->getSocket(), response);
+                }
+                else if(header == '%') {      // add points to your score      -   '%points:'
                     read(this_usr->getSocket(), buffer, BUFFER_SIZE);
                     this_usr->addToScore(stoi(buffer));
                     response = "Your current score: " + to_string(this_usr->getScore()) + "\n";
@@ -208,7 +213,7 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                 else if(header == '<') {      // leaving the room
                     popUserOut(this_usr);
                     this_usr->setRoom(-1);
-                    response = "So you left our room, take care, mate!\n";
+                    response = "+:So you left our room, take care, mate!\n";
                 }
                 else if(header == '$') {      // change category        -   '$new_category:'
                     read(this_usr->getSocket(), buffer, BUFFER_SIZE);
@@ -216,10 +221,10 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                         response = buffer;
                         response = response.substr(0, response.find(':'));
                         rooms_list[this_usr->getRoom()]->setCategory(response);
-                        response = "So you have changed the Room's category to " + response + "\n";
+                        response = "+:So you have changed the Room's category to " + response + "\n";
                     }
                     else 
-                        response = "You have no right to do that!\n";
+                        response = "-:You have no right to do that!\n";
                 }
                 else if(header == '&') {        //  change the players number       -   '&new_limit:'
                     read(this_usr->getSocket(), buffer, BUFFER_SIZE);   
@@ -227,10 +232,10 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                         response = buffer;
                         auto room_in = rooms_list[this_usr->getRoom()];
                         room_in->setPlayersNumber(stoi(response));\
-                        response = "You have changed the players number to " + to_string(room_in->getMaxPlayersNumber()) + "\n";
+                        response = "+:You have changed the players number to " + to_string(room_in->getMaxPlayersNumber()) + "\n";
                     }
                     else 
-                        response = "You have no right to do that!\n";
+                        response = "-:You have no right to do that!\n";
                 }
                 else if(header == '?') {        //  change the questions number     -   '?new_limit:'
                     read(this_usr->getSocket(), buffer, BUFFER_SIZE);   
@@ -238,10 +243,10 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                         response = buffer;
                         auto room_in = rooms_list[this_usr->getRoom()];
                         room_in->setQuestionNumber(stoi(response));\
-                        response = "You have changed the question number to " + to_string(room_in->getQuestionsNumber()) + "\n";
+                        response = "+:You have changed the question number to " + to_string(room_in->getQuestionsNumber()) + "\n";
                     }
                     else 
-                        response = "You have no right to do that!\n";
+                        response = "-:You have no right to do that!\n";
                 }
             }
             sendMsg(this_usr->getSocket(), response);
@@ -306,7 +311,7 @@ void Server::addQuestion(string content) {
     questions_list.push_back(make_shared<Question>(q_content, answers, correct, category));
 }
 
-//  return string containig informations in format 'room_id:category:users_in:users_limit:game_state:' (e.g. 2:italian cuisine:6:11:OFF:)
+//  return string containing informations in format 'room_id:category:users_in:users_limit:game_state:' (e.g. 2:italian cuisine:6:11:OFF:)
 string Server::getLobbyInfo() {
     string info = "";
     int i = 1;

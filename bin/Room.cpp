@@ -124,17 +124,22 @@ bool Room::checkReady() {
     return true && players.size() > 1;
 }
 // ### TODO some time control/response listener needed
-void Room::sendQuestionsToUsers() {
+bool Room::sendQuestionsToUsers() {
     for(auto q : questions) {
+        if(getCurrentPlayersNumber() < 2)
+            return false;
         string q_temp = "";
         q_temp.append("?").
             append(q->getContent() + ":").
             append(q->getAnswers() + ":").
             append(to_string(q->getCorrect()) + "\n");
         for (auto x : players) 
-            srv->sendMsg(x->getSocket(), q_temp);        
+            if (x->getReady())
+                srv->sendMsg(x->getSocket(), q_temp);        
         sleep(15);
+
     }
+    return true;
 }
 //  ## TODO - some countdown before the beginning
 void Room::start() {
@@ -143,9 +148,11 @@ void Room::start() {
     cout << "Room " + this->getCategory() + " imported " + to_string(questions.size()) + " questions, game begins soon...\n";
     sleep(3);
     setGameState(true);
-    sendQuestionsToUsers();
-    cout << "All questions sent in room " + this->category + ", time to count points\n";
-    sleep(15);
+    if(sendQuestionsToUsers()) 
+        cout << "All questions sent in room " + this->category + ", time to count points\n";
+    else 
+        cout << "Not enough players - game ABORTED in room " + this->category + ", time to count points\n";
+    sleep(10);
     this->end();
 }
 //  To CHECK
