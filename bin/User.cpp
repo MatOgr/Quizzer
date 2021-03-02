@@ -2,9 +2,7 @@
 
 
 User::User() : 
-    nick("JoshNoName"), socket_id(-1), room_id(-1), score(0), ready_to_play(false), admin(false) {
-        //cout << "No data provided" << endl;
-    };
+    nick("JoshNoName"), socket_id(-1), room_id(-1), score(0), ready_to_play(false), admin(false) {};
 
 User::User(const string nick, const int socket, const bool admin) : 
     nick(nick), socket_id(socket), room_id(-1), score(0), ready_to_play(false), admin(admin) {};

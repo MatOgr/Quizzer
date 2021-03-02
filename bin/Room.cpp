@@ -5,9 +5,8 @@ Room::Room(Server *srv) :
 // probably unnecessary 
 Room::Room(Server *srv, shared_ptr<User> player) :
     srv(srv), category("life"), players_number(PLAYERS_NR), questions_number(QUESTION_NR), game_running(false) {
-        //  make player admin - pointers needed
+        questions.clear();
         players.clear();
-        // players.reserve(players_number);
         player->setAdmin(true);
         players.push_back(player);      
     };
@@ -20,10 +19,11 @@ Room::Room(Server *srv, shared_ptr<User> player) :
 
 string Room::getRoomInfo() {
     string info = "";
-    info.append(this->category).append(":");
+    info.append(this->category);
     for(auto u : players) {
-        info.append(u->getNick());
+        info.append(":").append(u->getNick());
     }
+    info.append("\n");
     return info;
 }
 

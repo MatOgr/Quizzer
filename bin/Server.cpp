@@ -31,7 +31,6 @@ Server::Server() {
         perror("Creating socket failed");
         this->~Server();
     }
-    
     else if (bind(socket_nr, (sockaddr*) &serv_addr, sizeof(serv_addr))) {
         perror("Binding failed");
         this->~Server();
@@ -161,7 +160,6 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                 // this->~Server();
             }
             else if(header == '#') {           // leaving the server
-                // popUserOut(this_usr);
                 response = "U decided to leave Server, " + this_usr->getNick() + "\n";
                 connected = false;
             }  
@@ -203,7 +201,6 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                 }
                 else if(header == '_') {
                     response = rooms_list[this_usr->getRoom()]->getRoomInfo();
-                    sendMsg(this_usr->getSocket(), response);
                 }
                 else if(header == '%') {      // add points to your score      -   '%points:'
                     read(this_usr->getSocket(), buffer, BUFFER_SIZE);
@@ -345,10 +342,10 @@ int Server::run() {
             return 1;
         }
 
-        auto that_user = make_shared<User>("NewOne", client, false);
+        auto that_user = make_shared<User>("X___CrazyTrumpeter___X", client, false);
         connectUser(that_user);
         thread (&Server::clientRoutine, this, that_user).detach();
-        cout << "I'm RUNNING (client)" << endl;
+        cout << "New " << that_user->getNick() << " minion merged" << endl;
         sleep(1);
     }
 

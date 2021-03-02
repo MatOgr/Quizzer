@@ -24,7 +24,6 @@ private:
     int players_number;
     int questions_number;
     bool game_running;
-    // mutex room_mutex;
 public:
     Room(Server* serv);
     Room(Server* serv, shared_ptr<User> player);        // not needed???
