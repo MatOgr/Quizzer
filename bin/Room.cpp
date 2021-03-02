@@ -13,9 +13,9 @@ Room::Room(Server *srv, shared_ptr<User> player) :
     };
 
  Room::~Room() {
-     cout << "Room of category '" << category << "' has been closed..." << endl;
-     questions.clear();
-    //  players.clear();
+    cout << "Room of category '" << category << "' has been closed..." << endl;
+    questions.clear();
+    players.clear();
  };
 
 string Room::getRoomInfo() {
@@ -52,7 +52,7 @@ int Room::getMaxPlayersNumber() {
 }
 // returns current number of players in the room
 int Room::getCurrentPlayersNumber() {
-    return this->players_number;
+    return this->players.size();
 }
 // returns maximal question number for considered room
 int Room::getQuestionsNumber() {
@@ -140,6 +140,11 @@ bool Room::sendQuestionsToUsers() {
 
     }
     return true;
+}
+//  Set score of all players starting the game to 0 points
+void Room::resetScores() {
+    for (auto p : players) 
+        p->setScore(0);
 }
 //  ## TODO - some countdown before the beginning
 void Room::start() {

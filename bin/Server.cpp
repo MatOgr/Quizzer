@@ -314,7 +314,7 @@ void Server::addQuestion(string content) {
 
 //  return string containing informations in format 'room_id:category:users_in:users_limit:game_state:' (e.g. 2:italian cuisine:6:11:OFF:)
 string Server::getLobbyInfo() {
-    string info = "";
+    string info = "%:";
     int i = 1;
     for(auto r : rooms_list) {
         info.append(to_string(i)).append(":").

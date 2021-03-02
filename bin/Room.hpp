@@ -41,6 +41,7 @@ public:
     bool addPlayer(shared_ptr<User> plyr);
     bool removePlayer(int plyr_id);
 
+    void resetScores();
     void setGameState(const bool state);
     void setCategory(const string cat);
     void setQuestionNumber(const int quest_num);
