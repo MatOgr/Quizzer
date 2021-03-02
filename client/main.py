@@ -1,114 +1,82 @@
-from PyQt5 import QtCore, QtGui, QtWidgets
-import socket
+from PyQt5 import QtWidgets
+from PyQt5.QtWidgets import QApplication, QMainWindow, QLineEdit, QListWidget
+import sys
+from communication import ClientCommunication
 
-class Ui_LoginWindow(object):
-    def setupUi(self, LoginWindow):
-        LoginWindow.setObjectName("LoginWindow")
-        LoginWindow.resize(549, 398)
-        self.centralwidget = QtWidgets.QWidget(LoginWindow)
-        self.centralwidget.setObjectName("centralwidget")
-        self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(240, 220, 75, 23))
-        self.pushButton.setObjectName("pushButton")
-        self.pushButton.clicked.connect(self.loginclick)                                                                    
-        self.lineEdit = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit.setGeometry(QtCore.QRect(220, 80, 113, 20))
-        self.lineEdit.setToolTip("")
-        self.lineEdit.setObjectName("lineEdit")
-        self.lineEdit_2 = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit_2.setGeometry(QtCore.QRect(220, 120, 113, 20))
-        self.lineEdit_2.setObjectName("lineEdit_2")
-        self.lineEdit_3 = QtWidgets.QLineEdit(self.centralwidget)
-        self.lineEdit_3.setGeometry(QtCore.QRect(220, 160, 113, 20))
-        self.lineEdit_3.setObjectName("lineEdit_3")
-        LoginWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar(LoginWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 549, 21))
-        self.menubar.setObjectName("menubar")
-        LoginWindow.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(LoginWindow)
-        self.statusbar.setObjectName("statusbar")
-        LoginWindow.setStatusBar(self.statusbar)
+class MainWindow(QMainWindow, ClientCommunication):
 
-        self.retranslateUi(LoginWindow)
-        QtCore.QMetaObject.connectSlotsByName(LoginWindow)
+    def __init__(self, *args, **kwargs):
+        super(MainWindow, self).__init__(*args, **kwargs)
+        self.setupUi()
 
-    def retranslateUi(self, MainWindow):
-        _translate = QtCore.QCoreApplication.translate
-        MainWindow.setWindowTitle(_translate("MainWindow", "MainWindow"))
-        self.pushButton.setText(_translate("MainWindow", "Login"))
-        self.lineEdit.setPlaceholderText(_translate("MainWindow", "IP"))
-        self.lineEdit_2.setPlaceholderText(_translate("MainWindow", "port"))
-        self.lineEdit_3.setPlaceholderText(_translate("MainWindow", "name"))
+    def setupUi(self):
+        self.setObjectName("Main")
+        self.resize(640, 480)
+
+        self.QtStack = QtWidgets.QStackedLayout()
+
+        self.stack1 = QtWidgets.QWidget()
+        self.stack2 = QtWidgets.QWidget()
+        self.stack3 = QtWidgets.QWidget()
+
+        self.loginUi()
+        self.lobbyUi()
+        self.roomUi()
+
+        self.QtStack.addWidget(self.stack1)
+        self.QtStack.addWidget(self.stack2)
+        self.QtStack.addWidget(self.stack3)
     
-    def loginclick(self):
-        ip = self.lineEdit.text()
-        port = int(self.lineEdit_2.text())
-        return ip,port
+    def loginUi(self):
+        self.stack1.resize(640, 480)
+        self.PushButton1 = QtWidgets.QPushButton(self.stack1)
+        self.PushButton1.setText("LOGIN")
+        self.PushButton1.move(290, 380)
+        self.PushButton1.clicked.connect(self.loginClicked)
+        self.IpBox = QLineEdit(self.stack1)
+        self.IpBox.move(260, 150)
+        self.PortBox = QLineEdit(self.stack1)
+        self.PortBox.move(260, 200)
+        self.NicknameBox = QLineEdit(self.stack1)
+        self.NicknameBox.move(260, 250)
 
-class Ui_LobbyWindow(object):
-    def setupUi(self, LobbyWindow):
-        LobbyWindow.setObjectName("LobbyWindow")
-        LobbyWindow.resize(549, 398)
-        self.centralwidget = QtWidgets.QWidget(LobbyWindow)
-        self.centralwidget.setObjectName("centralwidget")
-        self.listWidget = QtWidgets.QListWidget(self.centralwidget)
-        self.listWidget.setGeometry(QtCore.QRect(100, 20, 331, 271))
-        self.listWidget.setObjectName("listWidget")
-        self.pushButton = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton.setGeometry(QtCore.QRect(160, 310, 75, 23))
-        self.pushButton.setObjectName("pushButton")
-        self.pushButton_2 = QtWidgets.QPushButton(self.centralwidget)
-        self.pushButton_2.setGeometry(QtCore.QRect(270, 310, 75, 23))
-        self.pushButton_2.setObjectName("pushButton_2")
-        LobbyWindow.setCentralWidget(self.centralwidget)
-        self.menubar = QtWidgets.QMenuBar(LobbyWindow)
-        self.menubar.setGeometry(QtCore.QRect(0, 0, 549, 21))
-        self.menubar.setObjectName("menubar")
-        LobbyWindow.setMenuBar(self.menubar)
-        self.statusbar = QtWidgets.QStatusBar(LobbyWindow)
-        self.statusbar.setObjectName("statusbar")
-        LobbyWindow.setStatusBar(self.statusbar)
+    def lobbyUi(self):
+        self.stack2.resize(640, 480)
+        self.ListWidget = QListWidget(self.stack2)
+        self.ListWidget.resize(300, 200)
+        self.ListWidget.addItem("0 TEST0")
+        self.ListWidget.addItem("1 TEST1")
+        self.ListWidget.addItem("2 TEST2")
+        self.ListWidget.move(180, 100)
+        self.JoinButton = QtWidgets.QPushButton(self.stack2)
+        self.JoinButton.setText("Join room")
+        self.JoinButton.move(230, 380)
+        self.JoinButton.clicked.connect(self.joinClicked)
+        self.CreateRoomButton = QtWidgets.QPushButton(self.stack2)
+        self.CreateRoomButton.setText("Create room")
+        self.CreateRoomButton.move(350, 380)
+        self.CreateRoomButton.clicked.connect(self.createRoomClicked)
 
-        self.retranslateUi(LobbyWindow)
-        QtCore.QMetaObject.connectSlotsByName(LobbyWindow)
+    def roomUi(self):
+        self.stack3.resize(640, 480)
+    
+    def loginClicked(self):
+        self.establishConnection(str(self.IpBox.text()),int(self.PortBox.text()))
+        self.setNickname(str(self.NicknameBox.text()))
+        self.QtStack.setCurrentIndex(1)
 
-    def retranslateUi(self, LobbyWindow):
-        _translate = QtCore.QCoreApplication.translate
-        LobbyWindow.setWindowTitle(_translate("LobbyWindow", "LobbyWindow"))
-        self.pushButton.setText(_translate("LobbyWindow", "Join Lobby"))
-        self.pushButton_2.setText(_translate("LobbyWindow", "Create Lobby"))
+    def joinClicked(self):
+        self.selectedRoom = self.ListWidget.currentItem().text().split(' ')[0]
+        self.joinRoom(self.selectedRoom)
 
-def connect(ip, port):
-    s = socket.socket()
-    try:
-        s = socket.socket(socket.AF_INET, socket.SOCK_STREAM)  
-        s.connect((ip, port))
-        print ("Socket successfully created")
-    except socket.error as err:  
-        print ("socket creation failed with error %s" %(err))
+    def createRoomClicked(self):
+        self.createRoom()
 
-class Controller:
-    def __init__(self):
-        pass
-
-    def show_login(self):
-        self.login = QtWidgets.QMainWindow()
-        ui = Ui_LoginWindow()
-        ui.setupUi(self.login)
-        self.login.show()
-
-    def show_lobby(self):
-        self.lobby = QtWidgets.QMainWindow()
-        ui = Ui_LobbyWindow()
-        ui.setupUi(self.lobby)
-        self.lobby.show()
-
-
-if __name__ == "__main__":
-    import sys
-    app = QtWidgets.QApplication(sys.argv)
-    controller = Controller()
-    controller.show_login()
-    controller.show_lobby()
+def main():
+    app = QApplication(sys.argv)
+    showMain = MainWindow()
     sys.exit(app.exec_())
+
+
+if __name__ == '__main__':
+    main()
