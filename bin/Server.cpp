@@ -54,8 +54,8 @@ Server::~Server() {
     this->socket_nr = -1;    
     close(socket);
     sleep(2);
-    rooms_list.clear();     cout << "Cleared the rooms list" << endl;       sleep(1);
-    users_list.clear();     cout << "Cleared the users list" << endl;       sleep(1);
+    rooms_list.clear();         cout << "Cleared the rooms list" << endl;           sleep(1);
+    users_list.clear();         cout << "Cleared the users list" << endl;           sleep(1);
     questions_list.clear();     cout << "Cleared the questions list" << endl;       sleep(1);
     cout << "Farewell" << endl;
 }
@@ -141,7 +141,7 @@ void Server::clientRoutine(weak_ptr<User> usr) {
     // userThread *this_usr = (userThread*)that_user;
     shared_ptr<User> this_usr = usr.lock();
     if (this_usr) {
-        char buffer[BUFFER_SIZE], header;
+        char buffer[BUFFER_SIZE+2] = {}, header = 0;
         string response;
 
         while(connected && this->running) {
@@ -153,7 +153,7 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                 read(this_usr->getSocket(), buffer, BUFFER_SIZE);
                 string nick(buffer); 
                 response = setNick(this_usr, nick.substr(0, nick.find(':'))) ?  
-                    "+:Your nick was set to:" + this_usr->getNick() + " ENJOY\n" : "-:There's been that NICK, already\n";
+                    "+:Your nick was set to:" + this_usr->getNick() + "\n" : "-:There's been that NICK, already\n";
             }        
             else if(header == 'Q') {            //  shutdown the server
                 this->running = false;
@@ -252,14 +252,15 @@ void Server::clientRoutine(weak_ptr<User> usr) {
             sendMsg(this_usr->getSocket(), response);
             sleep(1);             
             response = "";
-            memset(buffer, 0, BUFFER_SIZE);
+            memset(buffer, 0, BUFFER_SIZE+2);
             header = 0;
         }
         // handler closing - user leaving connection
         popUserOut(this_usr);
-        response = "You have been disconnected - world's cruel, hope U kno what'ya doin'...";
+        response = "You have been disconnected - world's cruel, hope U kno what'ya doin'...\n";
         sendMsg(this_usr->getSocket(), response);
         disconnectUser(this_usr->getSocket());
+        close(this_usr->getSocket());
     } else 
         cout << "Sth wrong with clientRoutine()" << endl;
 }
@@ -322,6 +323,7 @@ string Server::getLobbyInfo() {
             append(to_string(r->getMaxPlayersNumber())).
             append(r->getGameState() ? ":ON:" : ":OFF:").
             append("\n");
+        i++;
     }
     return info;
 }
