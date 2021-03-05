@@ -17,7 +17,7 @@
 #define PORT 8081
 #define BUFFER_SIZE 255
 
-//  to check
+//  creates Server instance using #define(d) data
 Server::Server() {
     running = true;
     
@@ -45,6 +45,7 @@ Server::Server() {
         readQuestions("resources/quest_base.txt");
 }
 
+
 //  closes file descriptor also
 Server::~Server() {
     saveQuestions("resources/quest_base.txt");
@@ -59,6 +60,7 @@ Server::~Server() {
     cout << "Farewell" << endl;
 }
 
+
 //  Creates new User and pushes it to the users_list
 void Server::connectUser(shared_ptr<User> usr) {
     unique_lock<mutex> lock_user{usr_mutex};
@@ -66,6 +68,8 @@ void Server::connectUser(shared_ptr<User> usr) {
     string greetings = "Welcome user " + usr->getNick() + "!\n";
     sendMsg(usr->getSocket(), greetings);
 }
+
+
 //  remove User by given 'usr' id from the users_list on a Server
 void Server::disconnectUser(const int usr) {
     unique_lock<mutex> lock_user{usr_mutex};
@@ -75,10 +79,14 @@ void Server::disconnectUser(const int usr) {
     users_list.erase(found);
 }
 
+
+//  return server status - whether runs or not
 bool* Server::getStatus() {
     return &running;
 }
 
+
+//  set nick of 'usr' to given 'new_nick' string 
 bool Server::setNick(shared_ptr<User> usr, const string new_nick) {
     for(auto u : users_list){
         if (u->getNick() == new_nick)
@@ -87,6 +95,7 @@ bool Server::setNick(shared_ptr<User> usr, const string new_nick) {
     usr->setNick(new_nick);
     return true;
 }
+
 
 //  create new Room and push it on the rooms_list on the Server
 int Server::createRoom() {
@@ -99,6 +108,8 @@ int Server::createRoom() {
     rooms_list.push_back(make_shared<Room>(this));
     return rooms_list.size()-1;
 }
+
+
 //  removes pointer to User of 'usr' id from Room of room_id
 void Server::popUserOut(shared_ptr<User> usr) {
     if (usr->getRoom() != -1) {
@@ -109,6 +120,8 @@ void Server::popUserOut(shared_ptr<User> usr) {
         usr->setAdmin(false);
     }
 }
+
+
 //  pushes pointer to User of 'usr' id to the Room's players_list
 bool Server::putUserInRoom(shared_ptr<User> usr, const int room_id) {
     unique_lock<mutex> lock_rooms{rm_mutex};
@@ -116,6 +129,8 @@ bool Server::putUserInRoom(shared_ptr<User> usr, const int room_id) {
     
     return rooms_list[room_id]->addPlayer(usr);
 }
+
+
 //  set User status while being in the Room 
 void Server::setUserReady(shared_ptr<User> usr, bool ready) {
     unique_lock<mutex> lock_users{usr_mutex};
@@ -127,6 +142,7 @@ void Server::setUserReady(shared_ptr<User> usr, bool ready) {
         thread (&Room::start, rooms_list[room_id]).detach();
 }
 
+
 // sends message by Server of given 'content' to provided socket 'id'
 void Server::sendMsg(const int id, const string content) {
     write(id, content.c_str(), content.length());
@@ -135,9 +151,8 @@ void Server::sendMsg(const int id, const string content) {
 
 //  provides managment of messages exchange between Server and Clients 
 void Server::clientRoutine(weak_ptr<User> usr) {
-    
+
     bool connected = true;
-    // userThread *this_usr = (userThread*)that_user;
     shared_ptr<User> this_usr = usr.lock();
     if (this_usr) {
         char buffer[BUFFER_SIZE+2] = {}, header = 0;
@@ -157,7 +172,7 @@ void Server::clientRoutine(weak_ptr<User> usr) {
             else if(header == 'Q') {            //  shutdown the server
                 this->running = false;
                 response = "U told the Server to SHUTDOWN...\n";
-                // this->~Server();
+                
             }
             else if(header == '#') {           // leaving the server
                 response = "U decided to leave Server, " + this_usr->getNick() + "\n";
@@ -262,6 +277,7 @@ void Server::clientRoutine(weak_ptr<User> usr) {
         cout << "Sth wrong with clientRoutine()" << endl;
 }
 
+
 //  return vector of Questions of given 'category'
 vector<shared_ptr<Question>> Server::getQuestions(const string category, const int number) {
     vector<shared_ptr<Question>> filtered;
@@ -275,6 +291,7 @@ vector<shared_ptr<Question>> Server::getQuestions(const string category, const i
     return filtered;
 }
 
+
 //  save questions_list to resource file 
 void Server::saveQuestions(string const fdir) {
     ofstream write_it(fdir, ios::out | ios::trunc);
@@ -283,6 +300,7 @@ void Server::saveQuestions(string const fdir) {
     }
     write_it.close();
 }
+
 
 //  read questions from question-base file to the questions_list on the Server
 void Server::readQuestions(const string fdir) {
@@ -294,6 +312,7 @@ void Server::readQuestions(const string fdir) {
     }
     read_it.close();
 }
+
 
 //  create Question object parsing given 'content' into constructor and push it to questions_list vector
 void Server::addQuestion(string content) {
@@ -308,6 +327,7 @@ void Server::addQuestion(string content) {
     correct = stoi(content);
     questions_list.push_back(make_shared<Question>(q_content, answers, correct, category));
 }
+
 
 //  return string containing informations in format 'room_id:category:users_in:users_limit:game_state:' (e.g. 2:italian cuisine:6:11:OFF:)
 string Server::getLobbyInfo() {
@@ -330,6 +350,7 @@ vector<shared_ptr<Room>> Server::getRoomsList() {
     return rooms_list;
 }
 
+
 //  main job of this class, loop while server is running accepts incoming connections
 int Server::run() {
             ///             MAIN LOOP
@@ -337,7 +358,11 @@ int Server::run() {
     socklen_t len = sizeof(sdr);
     while(this->running) {
         int client = accept(socket_nr, (sockaddr*)&sdr, &len);
-        if(client == -1) {
+        if(client < 0) {
+            // if(errno == EINTR) {
+            //     cout << "accept() restarted\n";
+            //     continue;
+            // }
             perror("Accept failed");
             return 1;
         }

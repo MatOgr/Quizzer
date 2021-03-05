@@ -46,7 +46,6 @@ public:
     void readQuestions(const string fdir);
     void addQuestion(string content);
     vector<shared_ptr<Question>> getQuestions(const string category, const int number);
-    // vector<User>* getUsersList();
     vector<shared_ptr<Room>> getRoomsList();
 };
 
