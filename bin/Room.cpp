@@ -188,13 +188,13 @@ void Room::start() {
     
     loadQuestions(srv->getQuestions(category, questions_number));
     cout << "Room " + this->getCategory() + " imported " + to_string(questions.size()) + " questions, game begins soon...\n";
-    sleep(3);
+    sleep(ANSW_TIME / 5);
     setGameState(true);
     if(sendQuestionsToUsers()) 
         cout << "All questions sent in room " + this->category + ", time to count points\n";
     else 
         cout << "Not enough players - game ABORTED in room " + this->category + ", time to count points\n";
-    sleep(10);
+    sleep(ANSW_TIME / 3);
     this->end();
 }
 

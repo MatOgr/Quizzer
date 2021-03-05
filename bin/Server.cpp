@@ -261,8 +261,7 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                         response = "-:You have no right to do that!\n";
                 }
             }
-            sendMsg(this_usr->getSocket(), response);
-            sleep(1);             
+            sendMsg(this_usr->getSocket(), response);  
             response = "";
             memset(buffer, 0, BUFFER_SIZE+2);
             header = 0;
@@ -371,7 +370,6 @@ int Server::run() {
         connectUser(that_user);
         thread (&Server::clientRoutine, this, that_user).detach();
         cout << "New " << that_user->getNick() << " minion merged" << endl;
-        sleep(1);
     }
 
     return 0;
