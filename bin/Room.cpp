@@ -20,10 +20,15 @@ Room::Room(Server *srv, shared_ptr<User> player) :
  };
 
 
-// return string containing information about all players, number of questions in game and category of these questions
+// return string containing information about room's category, questions number, max players  number, list of players
 string Room::getRoomInfo() {
-    string info = "";
-    info.append(this->category);
+    string info = "#:";
+    info.append(this->category).
+        append(":").
+        append(to_string(this->questions_number)).
+        append(":").
+        append(to_string(this->players_number));
+
     for(auto u : players) {
         info.append(":").append(u->getNick());
     }
@@ -102,6 +107,7 @@ bool Room::removePlayer(int plyr_id) {
         if((*leaving)->getAdmin() && players.size() > 1) {
             players.erase(leaving);
             players[0]->setAdmin(true);
+            srv->sendMsg(players[0]->getSocket(), "ADM:\n");
         } else 
             players.erase(leaving);
         return true;

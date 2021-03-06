@@ -118,6 +118,7 @@ void Server::popUserOut(shared_ptr<User> usr) {
         this->rooms_list[usr->getRoom()]->removePlayer(usr->getSocket());
         usr->setRoom(-1);
         usr->setAdmin(false);
+        usr->setReady(false);
     }
 }
 
@@ -224,7 +225,6 @@ void Server::clientRoutine(weak_ptr<User> usr) {
                 }
                 else if(header == '<') {      // leaving the room
                     popUserOut(this_usr);
-                    this_usr->setRoom(-1);
                     response = "+:So you left our room, take care, mate!\n";
                 }
                 else if(header == '$') {      // change category        -   '$new_category:'
