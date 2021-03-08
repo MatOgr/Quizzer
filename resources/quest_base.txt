@@ -1,4 +1,4 @@
-sport:What is the women recurve archery record on 2x70m:692/720?701/720?685/720?715/720:1
-sport:In marathons you have to:run?swim?dance?play basketball:1
-music:What genre does Metallica play (generally speaking):metal?folk?pop?classical:1
-life:Is life beautiful:yes?noo?JAM?Cleopatra was harsh uomann:3
+sport:What is the women recurve archery record on 2x70m:692/720:701/720:685/720:715/720:1
+sport:In marathons you have to:run:swim:dance:play basketball:1
+music:What genre does Metallica play (generally speaking):metal:folk:pop:classical:1
+life:Is life beautiful:yes:noo:JAM:Cleopatra was harsh uomann:3
