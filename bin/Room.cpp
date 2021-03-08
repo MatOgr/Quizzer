@@ -168,7 +168,7 @@ bool Room::sendQuestionsToUsers() {
         if(getCurrentPlayersNumber() < 2)
             return false;
         string q_temp = "";
-        q_temp.append(":").
+        q_temp.append("?").
             append(q->getContent() + ":").
             append(q->getAnswers() + ":").
             append(to_string(q->getCorrect()) + "\n");
