@@ -118,6 +118,7 @@ class MainWindow(QMainWindow):
         self.NicknameLabel = QLabel(self.stack1)
         self.NicknameLabel.setText("Nickname:")
         self.NicknameLabel.move(195, 253)
+
     def lobbyUi(self):
         self.stack2.resize(640, 480)
 
@@ -189,6 +190,10 @@ class MainWindow(QMainWindow):
         self.playerListWidget.resize(160, 200)
         self.playerListWidget.move(460, 100)
 
+        self.QuestionsLimitLabel = QLabel(self.stack3)
+        self.QuestionsLimitLabel.move(50, 85)
+        self.QuestionsLimitLabel.resize(200, 15)
+
         self.QuestionsLimitBox = QLineEdit(self.stack3)
         self.QuestionsLimitBox.move(50, 100)
 
@@ -200,10 +205,18 @@ class MainWindow(QMainWindow):
         self.PlayersLimitBox = QLineEdit(self.stack3)
         self.PlayersLimitBox.move(50, 150)
 
+        self.PlayersLimitLabel = QLabel(self.stack3)
+        self.PlayersLimitLabel.move(50, 135)
+        self.PlayersLimitLabel.resize(200, 15)
+
         self.PlayersLimitButton = QtWidgets.QPushButton(self.stack3)
         self.PlayersLimitButton.setText("Set")
         self.PlayersLimitButton.move(200, 149)
         self.PlayersLimitButton.clicked.connect(self.setPlayersLimit)
+
+        self.QuestionCategoryLabel = QLabel(self.stack3)
+        self.QuestionCategoryLabel.move(50, 185)
+        self.QuestionCategoryLabel.resize(200, 15)
 
         self.QuestionListBox = QComboBox(self.stack3)
         self.QuestionListBox.addItem("life")
@@ -329,6 +342,9 @@ class MainWindow(QMainWindow):
         if self.gameStatus == False:
             self.playerListWidget.clear()
             data = data.split(':')
+            self.QuestionsLimitLabel.setText(f"Question limit: Actual({data[1]})")
+            self.PlayersLimitLabel.setText(f"Players limit: Actual({data[2]})")
+            self.QuestionCategoryLabel.setText(f"Category: Actual({data[0]})")
             for player in data[3:]:
                 self.playerListWidget.addItem(player)
 
@@ -343,14 +359,14 @@ class MainWindow(QMainWindow):
     def setCategory(self):
         self.changeCategory(self.QuestionListBox.currentText())
 
-    def showGameUi(self,s:bool):
-        self.QuestionsLimitBox.setVisible(s)
-
     def showSettingsUi(self,s:bool):
+        self.PlayersLimitLabel.setVisible(s)
         self.QuestionsLimitBox.setVisible(s)
         self.QuestionsLimitButton.setVisible(s)
+        self.PlayersLimitLabel.setVisible(s)
         self.PlayersLimitBox.setVisible(s)
         self.PlayersLimitButton.setVisible(s)
+        self.QuestionCategoryLabel.setVisible(s)
         self.QuestionListBox.setVisible(s)
         self.QuestionListButton.setVisible(s)
 
@@ -411,7 +427,7 @@ class MainWindow(QMainWindow):
             if answer == self.correctAnswer:
                 self.addPoints(self.timeLeft)
                 print(f"Odp {self.timeLeft}")
-                
+
     def updatePlayerRanking(self, ranking):
         ranking = ranking.replace('\t','').replace(':','').split('\n')
         ranking = list(filter(None, ranking))
@@ -425,6 +441,8 @@ class MainWindow(QMainWindow):
         self.ReadyButton.setEnabled(True)
         self.msgBox(ranking)
 
+
+    
 def main():
     app = QApplication(sys.argv)
     showMain = MainWindow()
