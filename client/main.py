@@ -360,7 +360,7 @@ class MainWindow(QMainWindow):
         self.changeCategory(self.QuestionListBox.currentText())
 
     def showSettingsUi(self,s:bool):
-        self.PlayersLimitLabel.setVisible(s)
+        self.QuestionsLimitLabel.setVisible(s)
         self.QuestionsLimitBox.setVisible(s)
         self.QuestionsLimitButton.setVisible(s)
         self.PlayersLimitLabel.setVisible(s)
@@ -375,15 +375,11 @@ class MainWindow(QMainWindow):
         self.TimeLeftLabel.setVisible(s)
         self.TimeCounterLabel.setVisible(s)
         self.AnswerAButton.setVisible(s)
-        self.AnswerAButton.setVisible(s)
-        self.AnswerAButton.setVisible(s)
         self.AnswerBButton.setVisible(s)
         self.AnswerCButton.setVisible(s)
         self.AnswerDButton.setVisible(s)
 
     def answerButtons(self, s:bool):
-        self.AnswerAButton.setEnabled(s)
-        self.AnswerAButton.setEnabled(s)
         self.AnswerAButton.setEnabled(s)
         self.AnswerBButton.setEnabled(s)
         self.AnswerCButton.setEnabled(s)
