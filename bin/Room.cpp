@@ -193,7 +193,7 @@ void Room::resetScores() {
 
 //  start of the game - Room loads questions of its category from Server, changes game state to true and sends questions to all users in a Room
 void Room::start() {
-    
+    resetScores();
     loadQuestions(srv->getQuestions(category, questions_number));
     cout << "Room " + this->getCategory() + " imported " + to_string(questions.size()) + " questions, game begins soon...\n";
     sleep(ANSW_TIME / 5);

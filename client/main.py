@@ -109,7 +109,7 @@ class MainWindow(QMainWindow):
 
         self.PortLabel = QLabel(self.stack1)
         self.PortLabel.setText("Port:")
-        self.PortLabel.move(232, 203)
+        self.PortLabel.move(228, 203)
 
         self.NicknameBox = QLineEdit(self.stack1)
         self.NicknameBox.move(260, 250)
@@ -117,7 +117,7 @@ class MainWindow(QMainWindow):
 
         self.NicknameLabel = QLabel(self.stack1)
         self.NicknameLabel.setText("Nickname:")
-        self.NicknameLabel.move(208, 253)
+        self.NicknameLabel.move(195, 253)
     def lobbyUi(self):
         self.stack2.resize(640, 480)
 
