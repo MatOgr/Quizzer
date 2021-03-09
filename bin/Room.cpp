@@ -162,7 +162,7 @@ bool Room::checkReady() {
 }
 
 
-// send all questions gathered in this Room with predefined break
+// send all questions gathered in this Room with predefined break with actual ranking
 bool Room::sendQuestionsToUsers() {
     for(auto q : questions) {
         if(getCurrentPlayersNumber() < 2)
@@ -171,7 +171,9 @@ bool Room::sendQuestionsToUsers() {
         q_temp.append("?").
             append(q->getContent() + ":").
             append(q->getAnswers() + ":").
-            append(to_string(q->getCorrect()) + "\n");
+            append(to_string(q->getCorrect())).
+            append("#").
+            append(getRanking()).append("\n");
         for (auto x : players) 
             if (x->getReady())
                 srv->sendMsg(x->getSocket(), q_temp);        
