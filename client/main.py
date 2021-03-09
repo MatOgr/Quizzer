@@ -56,6 +56,7 @@ class MainWindow(QMainWindow):
         self.thread.updateRoomSig.connect(self.updateRoom)
         self.thread.QuestionSig.connect(self.gameQuestion)
 
+
     def setupUi(self):
         self.setObjectName("Main")
         self.resize(640, 480)
@@ -77,7 +78,6 @@ class MainWindow(QMainWindow):
         self.msg = QMessageBox()
 
 
-    
     def loginUi(self):
         self.stack1.resize(640, 480)
 
@@ -97,12 +97,19 @@ class MainWindow(QMainWindow):
         self.NicknameBox = QLineEdit(self.stack1)
         self.NicknameBox.move(260, 250)
         self.NicknameBox.setText("Name")
+
+
     def lobbyUi(self):
         self.stack2.resize(640, 480)
 
         self.ListWidget = QListWidget(self.stack2)
         self.ListWidget.resize(300, 200)
         self.ListWidget.move(180, 100)
+
+        self.JoinButton = QtWidgets.QPushButton(self.stack2)
+        self.JoinButton.setText("EXIT")
+        self.JoinButton.move(540, 20)
+        self.JoinButton.clicked.connect(self.exitServer)
 
         self.JoinButton = QtWidgets.QPushButton(self.stack2)
         self.JoinButton.setText("Join room")
@@ -113,6 +120,7 @@ class MainWindow(QMainWindow):
         self.CreateRoomButton.setText("Create room")
         self.CreateRoomButton.move(350, 380)
         self.CreateRoomButton.clicked.connect(self.createRoomClicked)
+
 
     def roomUi(self):
         self.stack3.resize(640, 480)
@@ -125,6 +133,10 @@ class MainWindow(QMainWindow):
         self.TimeCounterLabel.setText("00:00")
         self.TimeCounterLabel.move(460, 350)
         self.TimeCounterLabel.setFont(QFont('sans-serif', 15))
+
+        self.QuestionText = QtWidgets.QLabel(self.stack3)
+        self.QuestionText.move(50, 180)
+        self.QuestionText.resize(350, 60)
 
         self.AnswerAButton = QtWidgets.QPushButton(self.stack3)
         self.AnswerAButton.move(50, 250)
@@ -250,7 +262,7 @@ class MainWindow(QMainWindow):
             time.sleep(1)
 
     def getRoomUpdate(self):
-        while(self.gameStatus == False):
+        while(self.gameStatus == False and self.currentMenu == 2):
             self.writeData('_:')
             time.sleep(1)
 
@@ -276,6 +288,9 @@ class MainWindow(QMainWindow):
     def exitRoom(self):
         self.leaveRoom()
     
+    def exitServer(self):
+        self.writeData('#:')
+
     def updateLobby(self, rooms):
         selectedRoom = self.ListWidget.row(self.ListWidget.currentItem())
         self.ListWidget.clear()
@@ -295,15 +310,18 @@ class MainWindow(QMainWindow):
 
     def setPlayersLimit(self):
         self.playerLimit(self.PlayersLimitBox.text())
+        self.PlayersLimitBox.clear()
 
     def setQuestionsLimit(self):
         self.questionAmount(self.QuestionsLimitBox.text())
+        self.QuestionsLimitBox.clear()
     
     def setCategory(self):
         self.changeCategory(self.QuestionListBox.currentText())
 
     def showGameUi(self,s:bool):
         self.QuestionsLimitBox.setVisible(s)
+        
     def showSettingsUi(self,s:bool):
         self.QuestionsLimitBox.setVisible(s)
         self.QuestionsLimitButton.setVisible(s)
@@ -311,12 +329,14 @@ class MainWindow(QMainWindow):
         self.PlayersLimitButton.setVisible(s)
         self.QuestionListBox.setVisible(s)
         self.QuestionListButton.setVisible(s)
+
     def showGameUi(self,s:bool):
         self.TimeLeftLabel.setVisible(s)
         self.TimeCounterLabel.setVisible(s)
+        self.QuestionText.setVisible(s)
         self.AnswerAButton.setVisible(s)
-        self.AnswerAButton.setVisible(s)
-        self.AnswerAButton.setVisible(s)
+        # self.AnswerAButton.setVisible(s)
+        # self.AnswerAButton.setVisible(s)
         self.AnswerBButton.setVisible(s)
         self.AnswerCButton.setVisible(s)
         self.AnswerDButton.setVisible(s)
@@ -327,6 +347,7 @@ class MainWindow(QMainWindow):
         answers = buffer[1].split('?')
         print(answers)
         correctAnswer = buffer[2]
+        self.QuestionText.setText(question)
         self.AnswerAButton.setText(answers[0])
         self.AnswerBButton.setText(answers[1])
         self.AnswerCButton.setText(answers[2])
