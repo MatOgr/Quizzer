@@ -65,8 +65,8 @@ Server::~Server() {
 void Server::connectUser(shared_ptr<User> usr) {
     unique_lock<mutex> lock_user{usr_mutex};
     users_list.push_back(usr);
-    string greetings = "Welcome user " + usr->getNick() + "!\n";
-    sendMsg(usr->getSocket(), greetings);
+    // string greetings = "Welcome user " + usr->getNick() + "!\n";
+    // sendMsg(usr->getSocket(), greetings);
 }
 
 

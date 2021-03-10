@@ -65,6 +65,7 @@ class MainWindow(QMainWindow):
 
     def beforeQuit(self):
         print("Exiting")
+
     def setupUi(self):
         self.setObjectName("Main")
         self.resize(640, 480)
@@ -90,39 +91,51 @@ class MainWindow(QMainWindow):
     def loginUi(self):
         self.stack1.resize(640, 480)
 
-        self.ExitButon = QtWidgets.QPushButton(self.stack1)
-        self.ExitButon.setText("EXIT")
-        self.ExitButon.move(540, 20)
-        self.ExitButon.clicked.connect(self.exitServer)
+        self.ExitButton = QtWidgets.QPushButton(self.stack1)
+        self.ExitButton.setText("EXIT")
+        self.ExitButton.move(540, 20)
+        self.ExitButton.clicked.connect(self.exitServer)
+        self.ExitButton.setVisible(False)
+        self.ExitButton.setEnabled(False)
 
         self.PushButton1 = QtWidgets.QPushButton(self.stack1)
-        self.PushButton1.setText("LOGIN")
-        self.PushButton1.move(290, 380)
+        self.PushButton1.setText("ENTER MIDDLEEARTH")
+        self.PushButton1.move(200, 220)
+        self.PushButton1.resize(200, 50)
         self.PushButton1.clicked.connect(self.loginClicked)
 
-        self.IpLabel = QLabel(self.stack1)
-        self.IpLabel.setText("IP:")
-        self.IpLabel.move(240, 153)
+        self.SetNickButton = QtWidgets.QPushButton(self.stack1)
+        self.SetNickButton.setText("Set nickname")
+        self.SetNickButton.move(380, 280)
+        self.SetNickButton.clicked.connect(self.setNick)
+        self.SetNickButton.setVisible(False)
+        self.SetNickButton.setEnabled(False)
 
-        self.IpBox = QLineEdit(self.stack1)
-        self.IpBox.move(260, 150)
-        self.IpBox.setText("127.0.0.1")
+        # self.IpLabel = QLabel(self.stack1)
+        # self.IpLabel.setText("IP:")
+        # self.IpLabel.move(240, 153)
 
-        self.PortBox = QLineEdit(self.stack1)
-        self.PortBox.move(260, 200)
-        self.PortBox.setText("8081")
+        # self.IpBox = QLineEdit(self.stack1)
+        # self.IpBox.move(260, 150)
+        # self.IpBox.setText("127.0.0.1")
 
-        self.PortLabel = QLabel(self.stack1)
-        self.PortLabel.setText("Port:")
-        self.PortLabel.move(228, 203)
+        # self.PortBox = QLineEdit(self.stack1)
+        # self.PortBox.move(260, 200)
+        # self.PortBox.setText("8081")
+
+        # self.PortLabel = QLabel(self.stack1)
+        # self.PortLabel.setText("Port:")
+        # self.PortLabel.move(228, 203)
 
         self.NicknameBox = QLineEdit(self.stack1)
         self.NicknameBox.move(260, 250)
-        self.NicknameBox.setText("Name")
+        self.NicknameBox.setText("YourSUPERName")
+        self.NicknameBox.setVisible(False)
 
         self.NicknameLabel = QLabel(self.stack1)
         self.NicknameLabel.setText("Nickname:")
         self.NicknameLabel.move(195, 253)
+        self.NicknameLabel.setVisible(False)
 
     def lobbyUi(self):
         self.stack2.resize(640, 480)
@@ -131,10 +144,10 @@ class MainWindow(QMainWindow):
         self.ListWidget.resize(300, 200)
         self.ListWidget.move(180, 100)
 
-        self.ExitButon = QtWidgets.QPushButton(self.stack2)
-        self.ExitButon.setText("EXIT")
-        self.ExitButon.move(540, 20)
-        self.ExitButon.clicked.connect(self.exitServer)
+        self.ExitButton = QtWidgets.QPushButton(self.stack2)
+        self.ExitButton.setText("EXIT")
+        self.ExitButton.move(540, 20)
+        self.ExitButton.clicked.connect(self.exitServer)
 
         self.RoomsListLabel = QLabel(self.stack2)
         self.RoomsListLabel.setText("Rooms list:")
@@ -157,10 +170,10 @@ class MainWindow(QMainWindow):
         self.QuestionText.move(50, 30)
         self.QuestionText.resize(350,200)
 
-        self.ExitButon = QtWidgets.QPushButton(self.stack3)
-        self.ExitButon.setText("EXIT")
-        self.ExitButon.move(540, 20)
-        self.ExitButon.clicked.connect(self.exitServer)
+        self.ExitButton = QtWidgets.QPushButton(self.stack3)
+        self.ExitButton.setText("EXIT")
+        self.ExitButton.move(540, 20)
+        self.ExitButton.clicked.connect(self.exitServer)
 
         self.TimeLeftLabel = QLabel(self.stack3)
         self.TimeLeftLabel.setText("Time left")
@@ -249,7 +262,19 @@ class MainWindow(QMainWindow):
         QMessageBox.about(self, "", msg)
     
     def loginClicked(self):
-        self.connect(str(self.IpBox.text()),int(self.PortBox.text()))
+        # self.connect(str(self.IpBox.text()),int(self.PortBox.text()))
+        self.connect('127.0.0.1', 8081)
+        if self.connected:
+            self.PushButton1.setEnabled(False)
+            self.PushButton1.setVisible(False)
+            self.ExitButton.setEnabled(True)
+            self.ExitButton.setVisible(True)
+            self.NicknameBox.setVisible(True)
+            self.NicknameLabel.setVisible(True)
+            self.SetNickButton.setVisible(True)
+            self.SetNickButton.setEnabled(True)
+
+    def setNick(self):
         if self.connected == True:
             self.setNickname(str(self.NicknameBox.text()))
 
