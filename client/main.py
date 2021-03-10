@@ -90,6 +90,11 @@ class MainWindow(QMainWindow):
     def loginUi(self):
         self.stack1.resize(640, 480)
 
+        self.ExitButon = QtWidgets.QPushButton(self.stack1)
+        self.ExitButon.setText("EXIT")
+        self.ExitButon.move(540, 20)
+        self.ExitButon.clicked.connect(self.exitServer)
+
         self.PushButton1 = QtWidgets.QPushButton(self.stack1)
         self.PushButton1.setText("LOGIN")
         self.PushButton1.move(290, 380)
@@ -126,6 +131,11 @@ class MainWindow(QMainWindow):
         self.ListWidget.resize(300, 200)
         self.ListWidget.move(180, 100)
 
+        self.ExitButon = QtWidgets.QPushButton(self.stack2)
+        self.ExitButon.setText("EXIT")
+        self.ExitButon.move(540, 20)
+        self.ExitButon.clicked.connect(self.exitServer)
+
         self.RoomsListLabel = QLabel(self.stack2)
         self.RoomsListLabel.setText("Rooms list:")
         self.RoomsListLabel.move(180, 80)
@@ -146,6 +156,11 @@ class MainWindow(QMainWindow):
         self.QuestionText = QPlainTextEdit(self.stack3)
         self.QuestionText.move(50, 30)
         self.QuestionText.resize(350,200)
+
+        self.ExitButon = QtWidgets.QPushButton(self.stack3)
+        self.ExitButon.setText("EXIT")
+        self.ExitButon.move(540, 20)
+        self.ExitButon.clicked.connect(self.exitServer)
 
         self.TimeLeftLabel = QLabel(self.stack3)
         self.TimeLeftLabel.setText("Time left")
@@ -266,6 +281,9 @@ class MainWindow(QMainWindow):
 
     def serverDisconnect(self):
         self.writeData('#:')
+
+    def exitServer(self):
+        self.serverDisconnect()
 
     def createRoom(self):
         self.writeData('*:')
