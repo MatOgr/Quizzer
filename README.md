@@ -4,3 +4,7 @@ So there it is, The Quizzer, ultimate version of quizz battle, battle-royal of q
 
 To make test in terminal use, for example, 
 `nc localhost <PORT_NUMBER>`
+
+
+To run the GUI client (pyqt needed) use:
+`python ./client/main.py`
