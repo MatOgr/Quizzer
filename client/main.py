@@ -93,18 +93,18 @@ class MainWindow(QMainWindow):
     def loginUi(self):
         self.stack1.resize(640, 480)
 
+        self.PushButton1 = QtWidgets.QPushButton(self.stack1)
+        self.PushButton1.setText("ENTER MIDDLEEARTH")
+        self.PushButton1.move(150, 180)
+        self.PushButton1.resize(345, 100)
+        self.PushButton1.clicked.connect(self.loginClicked)
+
         self.ExitButton = QtWidgets.QPushButton(self.stack1)
         self.ExitButton.setText("EXIT")
         self.ExitButton.move(540, 20)
         self.ExitButton.clicked.connect(self.exitServer)
         self.ExitButton.setVisible(False)
         self.ExitButton.setEnabled(False)
-
-        self.PushButton1 = QtWidgets.QPushButton(self.stack1)
-        self.PushButton1.setText("ENTER MIDDLEEARTH")
-        self.PushButton1.move(200, 220)
-        self.PushButton1.resize(200, 50)
-        self.PushButton1.clicked.connect(self.loginClicked)
 
         self.SetNickButton = QtWidgets.QPushButton(self.stack1)
         self.SetNickButton.setText("Set nickname")
@@ -265,7 +265,6 @@ class MainWindow(QMainWindow):
         QMessageBox.about(self, "", msg)
     
     def loginClicked(self):
-        # self.connect(str(self.IpBox.text()),int(self.PortBox.text()))
         self.connect('127.0.0.1', 8081)
         if self.connected:
             self.PushButton1.setEnabled(False)
