@@ -39,6 +39,8 @@ class Thread(QThread):
                 self.QuestionSig.emit(self.buffer[1:])
             elif self.buffer[:1]=='~':
                 self.FinalRankingSig.emit(self.buffer[1:])
+            elif "U decided to leave Server" in self.buffer:
+                sys.exit()
             else:
                 self.msgSig.emit(self.buffer)
 
@@ -283,7 +285,9 @@ class MainWindow(QMainWindow):
         self.writeData('#:')
 
     def exitServer(self):
-        self.serverDisconnect()
+        if self.connected == True:
+            self.serverDisconnect()
+        sys.exit()
 
     def createRoom(self):
         self.writeData('*:')
