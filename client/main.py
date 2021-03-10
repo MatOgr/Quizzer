@@ -108,7 +108,8 @@ class MainWindow(QMainWindow):
 
         self.SetNickButton = QtWidgets.QPushButton(self.stack1)
         self.SetNickButton.setText("Set nickname")
-        self.SetNickButton.move(380, 280)
+        self.SetNickButton.move(220, 300)
+        self.SetNickButton.resize(200, 50)
         self.SetNickButton.clicked.connect(self.setNick)
         self.SetNickButton.setVisible(False)
         self.SetNickButton.setEnabled(False)
@@ -130,13 +131,13 @@ class MainWindow(QMainWindow):
         # self.PortLabel.move(228, 203)
 
         self.NicknameBox = QLineEdit(self.stack1)
-        self.NicknameBox.move(260, 250)
+        self.NicknameBox.move(270, 200)
         self.NicknameBox.setText("YourSUPERName")
         self.NicknameBox.setVisible(False)
 
         self.NicknameLabel = QLabel(self.stack1)
         self.NicknameLabel.setText("Nickname:")
-        self.NicknameLabel.move(195, 253)
+        self.NicknameLabel.move(195, 203)
         self.NicknameLabel.setVisible(False)
 
     def lobbyUi(self):
@@ -208,12 +209,12 @@ class MainWindow(QMainWindow):
 
         self.ReadyButton = QtWidgets.QPushButton(self.stack3)
         self.ReadyButton.setText("Ready")
-        self.ReadyButton.move(460, 30)
+        self.ReadyButton.move(500, 320)
         self.ReadyButton.clicked.connect(self.setReady)
         
         self.LeaveButton = QtWidgets.QPushButton(self.stack3)
         self.LeaveButton.setText("Leave room")
-        self.LeaveButton.move(550, 30)
+        self.LeaveButton.move(500, 360)
         self.LeaveButton.clicked.connect(self.exitRoom)
 
         self.playerListWidget = QListWidget(self.stack3)
